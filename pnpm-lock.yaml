@@ -50,7 +50,7 @@ importers:
 
   packages/uni-tools:
     dependencies:
-      '@dd/shared':
+      '@dd-code/shared':
         specifier: workspace:*
         version: link:../shared
 
@@ -62,7 +62,7 @@ importers:
       '@babel/traverse':
         specifier: ^7.28.4
         version: 7.28.4
-      '@dd/shared':
+      '@dd-code/shared':
         specifier: workspace:*
         version: link:../shared
       vite:

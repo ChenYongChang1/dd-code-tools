@@ -6,6 +6,9 @@
   "workspaces": [
     "packages/*"
   ],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "pnpm --filter=* dev",
     "build": "pnpm --filter=* build",

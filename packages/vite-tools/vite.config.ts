@@ -11,11 +11,11 @@ export default defineConfig({
       formats: ["es", "cjs"],
     },
     rollupOptions: {
-      external: ["vite", "@dd/shared"],
+      external: ["vite", "@dd-code/shared"],
       output: {
         globals: {
           "vite": "Vite",
-          "@dd/shared": "ddShared",
+          "@dd-code/shared": "DDCodeShared",
         },
       },
     },

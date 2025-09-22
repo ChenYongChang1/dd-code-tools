@@ -1,4 +1,4 @@
-import { program } from "@dd/shared";
+import { program } from "@dd-code/shared";
 
 program.name("vite-tools").description("vite 工具方法");
 

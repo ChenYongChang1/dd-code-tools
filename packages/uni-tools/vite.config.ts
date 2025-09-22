@@ -11,12 +11,12 @@ export default defineConfig({
       formats: ["es", "cjs"],
     },
     rollupOptions: {
-      external: ["@dd/shared"],
+      external: ["@dd-code/shared"],
       output: {
         globals: {
-          "@dd/shared": "ddShared",
-        },
-      },
+          "@dd-code/shared": "DDCodeShared"
+        }
+      }
     },
   },
 });
