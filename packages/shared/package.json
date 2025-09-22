@@ -13,9 +13,11 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@babel/core": "^7.28.4"
+  },
+  "devDependencies": {
     "commander": "^9.4.1"
   },
-  "devDependencies": {},
   "keywords": [
     "shared",
     "utilities",
