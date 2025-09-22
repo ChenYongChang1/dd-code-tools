@@ -1,4 +1,4 @@
-import program from "../utils/commander";
+import { program } from "@dd/shared";
 
 program.name("uni-tools").description("uni 工具方法");
 

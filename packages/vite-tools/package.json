@@ -1,0 +1,31 @@
+{
+  "name": "@dd/vite-tools",
+  "version": "1.0.0",
+  "description": "Vite-specific tools and utilities",
+  "main": "./dist/index.js",
+  "module": "./dist/index.esm.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@babel/parser": "^7.28.4",
+    "@babel/traverse": "^7.28.4",
+    "@dd/shared": "workspace:*"
+  },
+  "devDependencies": {},
+  "peerDependencies": {
+    "vite": ">=4.0.0"
+  },
+  "keywords": [
+    "vite",
+    "tools",
+    "utilities"
+  ],
+  "author": "",
+  "license": "ISC"
+}

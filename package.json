@@ -1,16 +1,17 @@
 {
   "name": "dd-code-utils",
   "version": "1.0.0",
-  "description": "",
-  "main": "./src/index.ts",
+  "description": "A monorepo for code utilities",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "vite build"
-  },
-  "dependencies": {
-    "@babel/parser": "^7.28.4",
-    "@babel/traverse": "^7.28.4",
-    "commander": "^9.4.1"
+    "dev": "pnpm --filter=* dev",
+    "build": "pnpm --filter=* build",
+    "build:uni-tools": "pnpm --filter=@dd/uni-tools build",
+    "build:vite-tools": "pnpm --filter=@dd/vite-tools build",
+    "build:shared": "pnpm --filter=@dd/shared build"
   },
   "devDependencies": {
     "@types/babel__core": "^7.20.5",

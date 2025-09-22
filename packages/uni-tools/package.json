@@ -1,0 +1,23 @@
+{
+  "name": "@dd/uni-tools",
+  "version": "1.0.0",
+  "description": "Universal tools for code utilities",
+  "main": "./dist/index.js",
+  "module": "./dist/index.esm.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@dd/shared": "workspace:*"
+  },
+  "devDependencies": {
+  },
+  "keywords": ["uni-tools", "utilities"],
+  "author": "",
+  "license": "ISC"
+}
