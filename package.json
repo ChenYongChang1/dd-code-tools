@@ -1,5 +1,5 @@
 {
-  "name": "@dd-code/utils",
+  "name": "@dd-code/tools",
   "version": "0.0.2",
   "description": "A monorepo for code utilities",
   "workspaces": [
@@ -14,6 +14,20 @@
     "build:uni-tools": "pnpm --filter=@dd/uni-tools build",
     "build:vite-tools": "pnpm --filter=@dd/vite-tools build",
     "build:shared": "pnpm --filter=@dd/shared build"
+  },
+  "exports": {
+    "./shared": {
+      "import": "./dist/shared/index.js",
+      "require": "./dist/shared/index.cjs"
+    },
+    "./uni": {
+      "import": "./dist/uni/index.js",
+      "require": "./dist/uni/index.cjs"
+    },
+    "./vite": {
+      "import": "./dist/vite/index.js",
+      "require": "./dist/vite/index.cjs"
+    }
   },
   "devDependencies": {
     "@types/babel__core": "^7.20.5",
