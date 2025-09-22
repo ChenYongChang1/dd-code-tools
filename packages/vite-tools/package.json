@@ -1,5 +1,5 @@
 {
-  "name": "@dd-code/vite-tools",
+  "name": "@dd-code/vite",
   "version": "1.0.0",
   "description": "Vite-specific tools and utilities",
   "main": "./dist/index.js",

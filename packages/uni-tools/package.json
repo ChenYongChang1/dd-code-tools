@@ -1,5 +1,5 @@
 {
-  "name": "@dd-code/uni-tools",
+  "name": "@dd-code/uni",
   "version": "1.0.0",
   "description": "Universal tools for code utilities",
   "main": "./dist/index.js",
