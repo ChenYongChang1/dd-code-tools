@@ -4,13 +4,13 @@ export default ({ mode, command }: ConfigEnv) => {
     build: {
       lib: [
         {
-          entry: "./src/uni-tools/index.ts",
+          entry: "./src/uni-tools/cli.ts",
           name: "ddUniUtils",
           fileName: "ddUni",
           formats: ["esm", "cjs"],
         },
         {
-          entry: "./src/vite-tools/index.ts",
+          entry: "./src/vite-tools/cli.ts",
           name: "ddCodeUtils",
           fileName: "ddVite",
           formats: ["esm", "cjs"],

@@ -1,0 +1,35 @@
+{
+  "name": "dd-code-utils",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@babel/parser": "^7.28.4",
+    "@babel/traverse": "^7.28.4",
+    "commander": "^9.4.1"
+  },
+  "devDependencies": {
+    "@types/babel__core": "^7.20.5",
+    "@types/babel__traverse": "^7.28.0",
+    "@types/minimist": "^1.2.2",
+    "@types/mustache": "^4.2.5",
+    "@types/node": "^18.11.6",
+    "es-module-lexer": "^1.6.0",
+    "rimraf": "^3.0.2",
+    "rollup-plugin-unused": "^0.1.1",
+    "typescript": "^4.8.4",
+    "vite": "6.0.6",
+    "vite-plugin-node": "^4.0.0"
+  },
+  "peerDependencies": {
+    "vite": ">=4.0.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.12.1"
+}
