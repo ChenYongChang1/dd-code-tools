@@ -4,7 +4,7 @@ import { applyCopy, excuteCopy, findDepFiles, removeDepFiles } from "./server";
 
 program
   .command("delete")
-  .description("删除文件")
+  .description("删除项目中未使用的文件")
   .option("--config <config>", "当前vite config文件路径", "")
   .action(({ config }) => {
     config = getViteConfigFilePath(config);
@@ -13,7 +13,7 @@ program
 
 program
   .command("find")
-  .description("寻找依赖文件")
+  .description("寻找项目中某个文件所依赖的其他文件")
   .option("--fileName <fileName>", "当前文件名称", "")
   .option("--config <config>", "当前vite config文件路径", "")
   .action(async (options) => {
