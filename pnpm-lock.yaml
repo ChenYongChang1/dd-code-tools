@@ -117,9 +117,6 @@ importers:
       '@dd-code/shared':
         specifier: workspace:*
         version: link:../shared
-      vite:
-        specifier: '>=4.0.0'
-        version: 6.0.6(@types/node@18.19.127)(terser@5.44.0)
     devDependencies:
       '@rollup/plugin-commonjs':
         specifier: ^28.0.6
@@ -145,6 +142,9 @@ importers:
       typescript:
         specifier: ^4.9.5
         version: 4.9.5
+      vite:
+        specifier: 6.0.6
+        version: 6.0.6(@types/node@18.19.127)(terser@5.44.0)
 
 packages:
 

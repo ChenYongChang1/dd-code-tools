@@ -2,7 +2,7 @@
 import path from "path";
 import traverse from "@babel/traverse";
 import { parse } from "@babel/parser";
-import { TransformResult, build, resolveConfig } from "vite";
+// import { TransformResult, build, resolveConfig } from "vite";
 import fs from "fs";
 import { execSync } from "child_process";
 // @ts-ignore
@@ -103,7 +103,7 @@ export const removeDepFiles = async (config: string) => {
   const rootConfig = getBaseConfigPath(config);
   let configRelatedFiles: string[] = getConfigInfo(rootConfig, ctxs);
   const fullFilesPath = getFullFiles(getBaseConfigPath(baseRoot));
-
+  const { build } = await import("vite");
   const result = await build({
     configFile: config,
     mode: "production",
@@ -227,7 +227,7 @@ export const findDepFiles = async (options: {
   const fullNames = fileName.split(",").map((f) => {
     return path.resolve(process.cwd(), f);
   });
-
+  const { build } = await import("vite");
   await build({
     configFile: config,
     mode: "production",
