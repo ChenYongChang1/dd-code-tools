@@ -1,6 +1,8 @@
 import { program } from "@dd-code/shared";
 
-import "./optional/index.ts"
+import "./optional/index"
+
+import "./find/index"
 
 
 program.parseAsync(process.argv);

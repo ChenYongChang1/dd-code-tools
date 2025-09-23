@@ -1,5 +1,5 @@
-import path from 'path'
-import fs from 'fs'
+import path from "path";
+import fs from "fs";
 
 export const readDirSync = (filePath: string): string[] => {
   const result: string[] = [];
@@ -20,3 +20,22 @@ export const readDirSync = (filePath: string): string[] => {
 
   return result;
 };
+
+export const checkPathIsDir = (file: string) => {
+  try {
+    return fs.statSync(file).isDirectory();
+  } catch (e) {
+    return false;
+  }
+};
+
+export function checkFileIsExist(file: string, list: string[] = []): boolean {
+  try {
+    if (list.length) {
+      return list.includes(file);
+    }
+    return fs.existsSync(file) && !checkPathIsDir(file);
+  } catch (e) {
+    return false;
+  }
+}
