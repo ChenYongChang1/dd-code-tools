@@ -1,6 +1,6 @@
 {
   "name": "@dd-code/vite",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "description": "Vite-specific tools and utilities",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -9,7 +9,8 @@
     "dist"
   ],
   "bin": {
-    "vite-tools": "dist/index.js"
+    "vite-tools": "dist/index.js",
+    "@dd-code/vite": "dist/index.js"
   },
   "scripts": {
     "dev": "rollup -c --watch",
@@ -34,7 +35,8 @@
     "vite": "6.0.6"
   },
   "peerDependencies": {
-    "vite": ">=4.0.0"
+    "vite": ">=4.0.0",
+    "@babel/preset-typescript": ">=7.27.1"
   },
   "keywords": [
     "vite",
