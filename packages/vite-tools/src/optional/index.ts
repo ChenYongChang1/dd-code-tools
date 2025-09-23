@@ -7,6 +7,7 @@ program
   .action(async (file) => {
     if (file) {
       // await transfromCodeByDirFile(file);
-      require('./server').transfromCodeByDirFile(file)
+      require("./server").transfromCodeByDirFile(file);
     }
   });
+

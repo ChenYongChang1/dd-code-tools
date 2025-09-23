@@ -5,9 +5,10 @@ program
   .command("delete")
   .description("删除项目中未使用的文件")
   .option("--config <config>", "当前vite config文件路径", "")
-  .action(({ config }) => {
+  .action(async ({ config }) => {
     config = getViteConfigFilePath(config);
-    require('./server').removeDepFiles(config);
+    const { removeDepFiles } = await import("./server");
+    removeDepFiles(config);
   });
 
 program
@@ -21,7 +22,8 @@ program
     if (!fileName) {
       throw Error("请输入文件名称");
     }
-    await require('./server').findDepFiles(options);
+    const { findDepFiles } = await import("./server");
+    await findDepFiles(options);
   });
 
 program
@@ -29,15 +31,18 @@ program
   .description("赋值依赖文件到指定位置")
   .action(async (_targetPath) => {
     const targetPath = path.resolve(process.cwd(), _targetPath);
-    if (!targetPath) {
+    if (!_targetPath) {
       throw Error("请输入文件名称");
     }
-    await require('./server').excuteCopy({ targetPath });
+    const { excuteCopy } = await import("./server");
+    await excuteCopy({ targetPath });
   });
 
 program
   .command("apply")
   .description("将copy文件应用到源文件")
   .action(async () => {
-    await require('./server').applyCopy();
+    const { applyCopy } = await import("./server");
+    await applyCopy();
   });
+

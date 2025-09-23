@@ -17,10 +17,12 @@ export default [
       {
         file: "dist/index.js",
         format: "cjs",
+        inlineDynamicImports: true, // 内联动态导入
       },
       {
         file: "dist/index.mjs",
         format: "es",
+        inlineDynamicImports: true, // 内联动态导入
       },
     ],
     external,
