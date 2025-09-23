@@ -235,7 +235,7 @@ class OptionalChainTransformer {
    */
   getPlugin() {
     const transformer = this;
-    return function ({ types: t }) {
+    return function ({ types: t }: { types: typeof babel.types }) {
       return {
         visitor: {
           VariableDeclarator(path) {
@@ -360,7 +360,8 @@ class OptionalChainTransformer {
    * @param {string} code - 源代码
    * @returns {string} 转换后的代码
    */
-  transformCode(code) {
+  transformCode(code: string) {
+    // @ts-ignore
     const result = babel.transform(code, {
       code: true,
       ast: false,
@@ -397,7 +398,7 @@ const transformer = new OptionalChainTransformer();
  * @param {string} code - 需要转换的源代码
  * @returns {string} 转换后的代码
  */
-export const transformCode = (code) => transformer.transformCode(code);
+export const transformCode = (code: string) => transformer.transformCode(code);
 
 // 导出类和实例供外部使用
 export { OptionalChainTransformer, transformer };

@@ -3,7 +3,7 @@ import fs from "node:fs";
 import { transformCode } from "./babel";
 import { readDirSync } from "@dd-code/shared";
 
-const getPathFiles = (pathName) => {
+const getPathFiles = (pathName: string): string[] => {
   if (fs.statSync(pathName).isDirectory()) {
     return readDirSync(pathName);
   }
@@ -11,7 +11,6 @@ const getPathFiles = (pathName) => {
 };
 
 export const transfromCodeByDirFile = (pathName: string) => {
-
   const pathNames = pathName.split(",");
   const fileNames: string[] = [];
   pathNames.map((pathName) => {
@@ -36,7 +35,9 @@ export const transfromCodeByDirFile = (pathName: string) => {
     console.log(`fileName: ${fileName}`);
     const content = fs.readFileSync(fileName, "utf-8");
     const transformContent = transformCode(content);
-    fs.writeFileSync(fileName, transformContent, "utf-8");
+    if (transformContent) {
+      fs.writeFileSync(fileName, transformContent, "utf-8");
+    }
     console.log(`end transform -------- ${index}/${len}`);
   });
   return len;
