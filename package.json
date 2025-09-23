@@ -9,7 +9,7 @@
     "dist"
   ],
   "scripts": {
-    "dev": "pnpm --filter=* dev",
+    "dev": "pnpm --filter=* --parallel dev",
     "build": "pnpm --filter=* build",
     "build:uni-tools": "pnpm --filter=@dd/uni-tools build",
     "build:vite-tools": "pnpm --filter=@dd/vite-tools build",

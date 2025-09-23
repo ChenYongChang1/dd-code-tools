@@ -29,13 +29,14 @@
  * @version 1.0.0
  */
 
-import { babel } from "@dd-code/shared";
+import { babel, Visitor } from "@dd-code/shared";
 
 /**
  * 可选链转换器类
  * @description 负责将成员表达式转换为可选链形式，避免运行时错误
  */
 class OptionalChainTransformer {
+  whitelist: string[];
   constructor() {
     // 白名单：不需要添加可选链的对象（如 window、console 等）
     this.whitelist = [

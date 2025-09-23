@@ -15,8 +15,7 @@ export default [
     output: [
       {
         file: 'dist/index.js',
-        format: 'cjs',
-        exports: 'auto'
+        format: 'cjs'
       },
       {
         file: 'dist/index.mjs',

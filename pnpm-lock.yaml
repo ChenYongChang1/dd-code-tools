@@ -47,7 +47,13 @@ importers:
       '@babel/core':
         specifier: ^7.28.4
         version: 7.28.4
+      '@babel/traverse':
+        specifier: ^7.28.4
+        version: 7.28.4
     devDependencies:
+      '@babel/types':
+        specifier: ^7.28.4
+        version: 7.28.4
       '@rollup/plugin-commonjs':
         specifier: ^28.0.6
         version: 28.0.6(rollup@4.52.0)

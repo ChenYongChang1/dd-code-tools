@@ -15,9 +15,7 @@ export default [
     output: [
       {
         file: 'dist/index.js',
-        format: 'cjs',
-        exports: 'auto',
-        banner: '#!/usr/bin/env node'
+        format: 'cjs'
       },
       {
         file: 'dist/index.mjs',
