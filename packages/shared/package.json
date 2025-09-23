@@ -1,6 +1,6 @@
 {
   "name": "@dd-code/shared",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Shared utilities and common code",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -15,7 +15,6 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@babel/types": "^7.28.4",
     "@rollup/plugin-commonjs": "^28.0.6",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.1",

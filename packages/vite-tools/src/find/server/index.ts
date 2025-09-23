@@ -5,6 +5,7 @@ import { parse } from "@babel/parser";
 import { TransformResult, build, resolveConfig } from "vite";
 import fs from "fs";
 import { execSync } from "child_process";
+// @ts-ignore
 
 const FILE_NAME = __dirname;
 const BASE = process.cwd();
