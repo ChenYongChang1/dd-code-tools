@@ -1,6 +1,5 @@
 import path from "path";
 import { getViteConfigFilePath, program } from "@dd-code/shared";
-import { applyCopy, excuteCopy, findDepFiles, removeDepFiles } from "./server";
 
 program
   .command("delete")
@@ -8,7 +7,7 @@ program
   .option("--config <config>", "当前vite config文件路径", "")
   .action(({ config }) => {
     config = getViteConfigFilePath(config);
-    removeDepFiles(config);
+    require('./server').removeDepFiles(config);
   });
 
 program
@@ -22,7 +21,7 @@ program
     if (!fileName) {
       throw Error("请输入文件名称");
     }
-    await findDepFiles(options);
+    await require('./server').findDepFiles(options);
   });
 
 program
@@ -33,12 +32,12 @@ program
     if (!targetPath) {
       throw Error("请输入文件名称");
     }
-    await excuteCopy({ targetPath });
+    await require('./server').excuteCopy({ targetPath });
   });
 
 program
   .command("apply")
   .description("将copy文件应用到源文件")
   .action(async () => {
-    await applyCopy();
+    await require('./server').applyCopy();
   });
