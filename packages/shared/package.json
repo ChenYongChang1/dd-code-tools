@@ -1,6 +1,6 @@
 {
   "name": "@dd-code/shared",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Shared utilities and common code",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
