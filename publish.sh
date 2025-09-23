@@ -15,4 +15,4 @@ done
 echo "All sub-packages published!"
 
 # 或者使用 pnpm 命令（推荐）：
-# pnpm -r --filter="./packages/*" publish --access public
+# pnpm -r --filter="./packages/*" publish --access public --no-git-checks

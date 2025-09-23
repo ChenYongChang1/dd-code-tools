@@ -29,7 +29,7 @@
  * @version 1.0.0
  */
 
-import { babel } from "@dd-code/shared";
+import babel from "@babel/core";
 
 /**
  * 可选链转换器类
