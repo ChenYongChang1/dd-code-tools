@@ -1,6 +1,6 @@
 {
   "name": "@dd-code/vite",
-  "version": "1.0.10",
+  "version": "1.0.12",
   "description": "Vite-specific tools and utilities",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -13,9 +13,15 @@
     "web.d.ts"
   ],
   "bin": {
-    "@dd-code/vite": "dist/index.js"
+    "@dd-code/vite": "dist/index.js",
+    "vite-tools": "dist/index.js"
   },
   "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js"
+    },
     "./plugins": {
       "types": "./dist/plugins.d.ts",
       "import": "./dist/plugins.esm.js",

@@ -1,14 +1,23 @@
-import { program } from "@dd-code/shared";
-// import { transfromCodeByDirFile } from "./server";
+import path from "path";
+import fs from "fs";
+import { getPathFiles, transfromCodeByDirFile } from "./server";
 
-program
-  .command("optional [file]")
-  .description("修复目录下的所有文件或者指定文件")
-  .action(async (file) => {
-    if (file) {
-      // await transfromCodeByDirFile(file);
-      const { transfromCodeByDirFile } = await import("./server");
-      await transfromCodeByDirFile(file);
+export const transformCodeServer = (pathName: string) => {
+  const pathNames = pathName.split(",");
+  const fileNames: string[] = [];
+  pathNames.map((pathName) => {
+    const fullPath = pathName.startsWith(process.cwd())
+      ? pathName
+      : path.join(process.cwd(), pathName);
+    // 判断路径是否为文件
+    if (fs.statSync(fullPath).isFile()) {
+      fileNames.push(fullPath);
+    } else {
+      fileNames.push(...getPathFiles(fullPath));
     }
   });
-
+  const filterFileNames = fileNames.filter((fileName) => {
+    return [".js", ".ts", ".tsx", ".jsx"].includes(path.extname(fileName));
+  });
+  return transfromCodeByDirFile(filterFileNames);
+};

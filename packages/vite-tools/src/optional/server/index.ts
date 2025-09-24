@@ -3,30 +3,14 @@ import fs from "fs";
 import { transformCode } from "./babel";
 import { readDirSync } from "@dd-code/shared";
 
-const getPathFiles = (pathName: string): string[] => {
+export const getPathFiles = (pathName: string): string[] => {
   if (fs.statSync(pathName).isDirectory()) {
     return readDirSync(pathName);
   }
   return [pathName];
 };
 
-export const transfromCodeByDirFile = (pathName: string) => {
-  const pathNames = pathName.split(",");
-  const fileNames: string[] = [];
-  pathNames.map((pathName) => {
-    const fullPath = pathName.startsWith(process.cwd())
-      ? pathName
-      : path.join(process.cwd(), pathName);
-    // 判断路径是否为文件
-    if (fs.statSync(fullPath).isFile()) {
-      fileNames.push(fullPath);
-    } else {
-      fileNames.push(...getPathFiles(fullPath));
-    }
-  });
-  const filterFileNames = fileNames.filter((fileName) => {
-    return [".js", ".ts", ".tsx", ".jsx"].includes(path.extname(fileName));
-  });
+export const transfromCodeByDirFile = (filterFileNames: string[]) => {
   const len = filterFileNames.length;
   console.log({ filterFileNames }, "-----");
 
