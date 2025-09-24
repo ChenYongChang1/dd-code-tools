@@ -1,6 +1,6 @@
 {
-  "name": "@dd-code/vite",
-  "version": "1.0.12",
+  "name": "@dd-code/vite-tools",
+  "version": "1.0.13",
   "description": "Vite-specific tools and utilities",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -13,8 +13,7 @@
     "web.d.ts"
   ],
   "bin": {
-    "@dd-code/vite": "dist/index.js",
-    "vite-tools": "dist/index.js"
+    "@dd-code/vite-tools": "dist/index.js"
   },
   "exports": {
     ".": {
