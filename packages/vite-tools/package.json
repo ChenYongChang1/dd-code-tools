@@ -1,16 +1,31 @@
 {
   "name": "@dd-code/vite",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Vite-specific tools and utilities",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "plugins.js",
+    "plugins.d.ts",
+    "web.js",
+    "web.d.ts"
   ],
   "bin": {
-    "vite-tools": "dist/index.js",
     "@dd-code/vite": "dist/index.js"
+  },
+  "exports": {
+    "./plugins": {
+      "types": "./dist/plugins.d.ts",
+      "import": "./dist/plugins.esm.js",
+      "require": "./dist/plugins.cjs.js"
+    },
+    "./web": {
+      "types": "./dist/web.d.ts",
+      "import": "./dist/web.esm.js",
+      "require": "./dist/web.cjs.js"
+    }
   },
   "scripts": {
     "dev": "rollup -c --watch",

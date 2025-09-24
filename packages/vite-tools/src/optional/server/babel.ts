@@ -100,7 +100,7 @@ class OptionalChainTransformer {
    * @param {Path} path - 节点路径
    * @returns {boolean} 是否需要包装
    */
-  commonCheckNeedWrap(path) {
+  commonCheckNeedWrap(path, t) {
     const getFirstName = (path) => {
       while (path.object) {
         path = path.object;
@@ -109,6 +109,10 @@ class OptionalChainTransformer {
       return path.name;
     };
     const node = path.node;
+    // const isNew = t.isNewExpression(path.parent)
+    // if(isNew){
+    //   return false;
+    // }
     // 1. 跳过已是可选链的节点（避免重复处理）
     if (node.optional) return false;
     // 2. 跳过已标记为处理过的节点（避免重复转换）
@@ -120,7 +124,13 @@ class OptionalChainTransformer {
         ? node.callee.name
         : firstName;
     const isHas = this.whitelist.includes(nodeName) || path.parent._isWhite;
-    debugger;
+    if (
+      t.isAssignmentExpression(path.parent) &&
+      path.parent.left === path.node
+    ) {
+      this.skipNode(path);
+      return false;
+    }
     if (isHas) {
       path.node._isWhite = true;
       this.skipNode(path);
@@ -174,7 +184,6 @@ class OptionalChainTransformer {
       [],
       true
     );
-    debugger;
 
     // 2. 生成「原自增表达式」节点（保持原样，不转换为可选链）
     const clonedMemberNode = this.createNodeAndAddOptional(memberNode, t);
@@ -205,6 +214,7 @@ class OptionalChainTransformer {
    * @param {Object} t - Babel types
    */
   excuteAssignment(assignmentPath, memberNode, t) {
+    if (t.isLogicalExpression(assignmentPath.parent)) return;
     assignmentPath.node._processed = true;
     // 使用去掉最后一层的可选链（如 a.b.c → a?.b）
     const optionalMemberWithoutLast =
@@ -229,6 +239,16 @@ class OptionalChainTransformer {
     // 4. 替换原赋值表达式为「逻辑与表达式」
     assignmentPath.replaceWith(andExpr);
   }
+  handleSpreadElement(path, t, defaultValue) {
+    // const { argument } = node;
+    const argument = path.get("argument");
+    if (t.isLogicalExpression(argument)) {
+      return true;
+    } else {
+      const logicalOr = t.logicalExpression("||", argument.node, defaultValue);
+      argument.replaceWith(logicalOr);
+    }
+  }
 
   /**
    * 获取 Babel 插件
@@ -236,23 +256,38 @@ class OptionalChainTransformer {
    */
   getPlugin() {
     const transformer = this;
-    return function ({ types: t }: { types: typeof babel.types }) {
+    return function ({ types: t }) {
       return {
         visitor: {
+          SpreadElement(path) {
+            const parentType = path.parent.type;
+            switch (parentType) {
+              case "ArrayExpression":
+                transformer.handleSpreadElement(path, t, t.arrayExpression([]));
+                break;
+              case "ObjectExpression":
+                transformer.handleSpreadElement(
+                  path,
+                  t,
+                  t.objectExpression([])
+                );
+                break;
+            }
+          },
           VariableDeclarator(path) {
             const node = path.node;
             if (!(t.isObjectPattern(node.id) || t.isArrayPattern(node.id)))
               return;
 
             const isObject = t.isObjectPattern(node.id);
-            console.log(
-              `发现${isObject ? "对象" : "数组"}解构赋值:`,
-              path.getSource()
-            );
+            // console.log(
+            //   `发现${isObject ? "对象" : "数组"}解构赋值:`,
+            //   path.getSource()
+            // );
 
             if (node.init) {
               const initPath = path.get("init");
-              const flag = transformer.commonCheckNeedWrap(initPath);
+              const flag = transformer.commonCheckNeedWrap(initPath, t);
               if (flag) {
                 // 检查是否已经有默认值（|| {} 或 || []）
                 const hasDefaultValue =
@@ -274,7 +309,7 @@ class OptionalChainTransformer {
 
                   // 替换初始化表达式
                   node.init = logicalOr;
-                  console.log("转换后的解构赋值:", path.getSource());
+                  // console.log("转换后的解构赋值:", path.getSource());
                 }
               }
             }
@@ -288,9 +323,9 @@ class OptionalChainTransformer {
               t.isMemberExpression(node.left) ||
               t.isOptionalMemberExpression(node.left)
             ) {
-              console.log("发现赋值表达式:", path.getSource());
+              // console.log("发现赋值表达式:", path.getSource());
               const memberNode = node.left;
-              const flag = transformer.commonCheckNeedWrap(path.get("left"));
+              const flag = transformer.commonCheckNeedWrap(path.get("left"), t);
               if (flag) {
                 transformer.excuteAssignment(path, memberNode, t);
                 return;
@@ -306,10 +341,11 @@ class OptionalChainTransformer {
               t.isMemberExpression(node.argument) ||
               t.isOptionalMemberExpression(node.argument)
             ) {
-              console.log("发现自增自减表达式:", path.getSource());
+              // console.log("发现自增自减表达式:", path.getSource());
               const memberNode = node.argument;
               const flag = transformer.commonCheckNeedWrap(
-                path.get("argument")
+                path.get("argument"),
+                t
               );
               if (flag) {
                 node._processed = true;
@@ -323,8 +359,8 @@ class OptionalChainTransformer {
           },
           "MemberExpression|OptionalMemberExpression"(path) {
             // 打印一下遍历的当前的源码
-            console.log("当前遍历的源码:", path.getSource());
-            const flag = transformer.commonCheckNeedWrap(path);
+            // console.log("当前遍历的源码:", path.getSource());
+            const flag = transformer.commonCheckNeedWrap(path, t);
             if (!flag) return;
             const optionalMember = transformer.createOptionalMemberExpr(
               path.node,
@@ -351,6 +387,26 @@ class OptionalChainTransformer {
             // 标记为已处理，避免重复转换
             path.node._processed = true;
           },
+          NewExpression(path) {
+            // console.log(path);
+            if (path.node._processed) return;
+
+            // 递归标记callee及其所有子节点，防止函数名被转换
+            const markSkipTransform = (node) => {
+              if (!node) return;
+              node._processed = true;
+              if (node.object) markSkipTransform(node.object);
+              if (node.property) markSkipTransform(node.property);
+              if (node.callee) markSkipTransform(node.callee);
+            };
+
+            if (path.node.callee) {
+              markSkipTransform(path.node.callee);
+            }
+            // 标记为已处理，避免重复转换
+            path.node._processed = true;
+            debugger;
+          },
         },
       };
     };
@@ -361,8 +417,7 @@ class OptionalChainTransformer {
    * @param {string} code - 源代码
    * @returns {string} 转换后的代码
    */
-  transformCode(code: string) {
-    // @ts-ignore
+  transformCode(code) {
     const result = babel.transform(code, {
       code: true,
       ast: false,
@@ -399,7 +454,12 @@ const transformer = new OptionalChainTransformer();
  * @param {string} code - 需要转换的源代码
  * @returns {string} 转换后的代码
  */
-export const transformCode = (code: string) => transformer.transformCode(code);
+export const transformCode = (code: string) => {
+  const result = transformer.transformCode(code);
+
+  return result;
+};
+// module.exports.transformCode = (code) => transformer.transformCode(code);
 
 // 导出类和实例供外部使用
 export { OptionalChainTransformer, transformer };
