@@ -2,4 +2,4 @@ export {
   OptionalChainTransformer,
   transformer,
   transformCode,
-} from "./server/babel";
+} from "./optional/server/babel";

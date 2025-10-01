@@ -16,8 +16,13 @@ export const transformCodeServer = (pathName: string) => {
       fileNames.push(...getPathFiles(fullPath));
     }
   });
+  const vueFiles = fileNames.filter((fileName) => {
+    return fileName.endsWith(".vue");
+  });
   const filterFileNames = fileNames.filter((fileName) => {
     return [".js", ".ts", ".tsx", ".jsx"].includes(path.extname(fileName));
   });
+  console.log(vueFiles);
+
   return transfromCodeByDirFile(filterFileNames);
 };
