@@ -30,6 +30,7 @@
  */
 
 import babel from "@babel/core";
+import ts from 'typescript'
 
 /**
  * 可选链转换器类
@@ -413,36 +414,127 @@ class OptionalChainTransformer {
   }
 
   /**
+   * 使用 TypeScript 编译器 API 提取泛型信息
+   * @param {string} code - 源代码
+   * @returns {Array} 泛型信息数组
+   */
+  extractGenericsWithTS(code) {
+    const sourceFile = ts.createSourceFile(
+      "temp.ts",
+      code,
+      ts.ScriptTarget.Latest,
+      true
+    );
+
+    const generics = [];
+
+    function visitNode(node) {
+      // 检查函数调用表达式的泛型参数
+      if (ts.isCallExpression(node) && node.typeArguments) {
+        // 获取函数名结束位置
+        const functionEnd = node.expression.getEnd();
+
+        // 找到 < 的位置
+        let angleStart = functionEnd;
+        while (angleStart < code.length && code[angleStart] !== "<") {
+          angleStart++;
+        }
+
+        // 找到对应的 > 的位置
+        let angleEnd = angleStart + 1;
+        let depth = 1;
+        while (angleEnd < code.length && depth > 0) {
+          if (code[angleEnd] === "<") {
+            depth++;
+          } else if (code[angleEnd] === ">") {
+            depth--;
+          }
+          angleEnd++;
+        }
+
+        const typeArgsText = code.substring(angleStart, angleEnd);
+
+        generics.push({
+          start: angleStart,
+          end: angleEnd,
+          text: typeArgsText,
+          fullStart: node.expression.getStart(),
+          fullEnd: node.getEnd(),
+        });
+      }
+
+      // 递归遍历子节点
+      ts.forEachChild(node, visitNode);
+    }
+
+    visitNode(sourceFile);
+    return generics;
+  }
+
+  /**
    * 转换代码
    * @param {string} code - 源代码
    * @returns {string} 转换后的代码
    */
   transformCode(code) {
-    const result = babel.transform(code, {
-      code: true,
-      ast: false,
-      presets: [],
-      compact: false,
-      retainLines: true,
-      parserOpts: {
-        strictMode: false,
-        plugins: [
-          "typescript",
-          "jsx",
-          ["decorators", { decoratorsBeforeExport: true }],
-        ],
-      },
-      generatorOpts: {
-        semicolons: false,
-        compact: false,
-        minified: false,
-        concise: false,
-        retainLines: true,
-        retainFunctionParens: true,
-      },
-      plugins: [this.getPlugin()],
+    // 使用 TypeScript API 提取泛型信息
+    const generics = this.extractGenericsWithTS(code);
+
+    // 创建占位符映射
+    const placeholderMap = new Map();
+    let processedCode = code;
+
+    // 从后往前替换，避免位置偏移
+    generics.reverse().forEach((generic, index) => {
+      const placeholder = `__TS_GENERIC_${index}__`;
+      placeholderMap.set(placeholder, generic.text);
+
+      // 替换泛型部分为占位符
+      processedCode =
+        processedCode.substring(0, generic.start) +
+        placeholder +
+        processedCode.substring(generic.end);
     });
-    return result.code;
+
+    let result;
+    try {
+      result = babel.transform(processedCode, {
+        code: true,
+        ast: false,
+        presets: [],
+        compact: false,
+        retainLines: true,
+        parserOpts: {
+          strictMode: false,
+          plugins: [
+            ["typescript", { isTSX: false, allowDeclareFields: true }],
+            "jsx",
+            ["decorators", { decoratorsBeforeExport: true }],
+          ],
+        },
+        generatorOpts: {
+          semicolons: false,
+          compact: false,
+          minified: false,
+          concise: false,
+          retainLines: true,
+          retainFunctionParens: true,
+        },
+        plugins: [this.getPlugin()],
+      });
+    } catch (error) {
+      console.error("Babel transform error:", error);
+      return code;
+    }
+
+    let finalCode = result.code || processedCode;
+
+    // 恢复泛型语法
+    placeholderMap.forEach((originalText, placeholder) => {
+      finalCode = finalCode.replace(placeholder, originalText);
+    });
+
+    return finalCode;
   }
 }
 
