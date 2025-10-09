@@ -30,7 +30,7 @@
  */
 
 import babel from "@babel/core";
-import ts from 'typescript'
+import ts from "typescript";
 
 /**
  * 可选链转换器类
@@ -38,7 +38,9 @@ import ts from 'typescript'
  */
 class OptionalChainTransformer {
   whitelist: string[];
+  arrayWhiteWithLogical: string[];
   constructor() {
+    this.arrayWhiteWithLogical = ["map", "filter"];
     // 白名单：不需要添加可选链的对象（如 window、console 等）
     this.whitelist = [
       "import",
@@ -120,10 +122,13 @@ class OptionalChainTransformer {
     if (node._processed) return false;
     // 3. 跳过白名单对象（如 window、console 等）
     const firstName = getFirstName(node);
-    const nodeName =
+    const nodeName = (
       node.type === "CallExpression" && node.callee
-        ? node.callee.name
-        : firstName;
+        ? t.isMemberExpression(node.callee)
+          ? getFirstName(node.callee)
+          : node.callee.name
+        : firstName
+    )?.replace(/__TS_GENERIC_\d+__/, "");
     const isHas = this.whitelist.includes(nodeName) || path.parent._isWhite;
     if (
       t.isAssignmentExpression(path.parent) &&
@@ -134,7 +139,7 @@ class OptionalChainTransformer {
     }
     if (isHas) {
       path.node._isWhite = true;
-      this.skipNode(path);
+      // this.skipNode(path);
       return false;
     }
     return true;
@@ -371,22 +376,58 @@ class OptionalChainTransformer {
           },
           CallExpression(path) {
             // 避免重复处理：检查是否已经被处理过
+            const flag = transformer.commonCheckNeedWrap(path, t);
+            if (!flag) return;
             if (path.node._processed) return;
+            const callee = path.node.callee;
+            const newOptionalCallExpression = t.optionalCallExpression(
+              callee,
+              path.node.arguments,
+              false
+            );
+            // newOptionalCallExpression._processed = true;
 
-            // 递归标记callee及其所有子节点，防止函数名被转换
-            const markSkipTransform = (node) => {
-              if (!node) return;
-              node._processed = true;
-              if (node.object) markSkipTransform(node.object);
-              if (node.property) markSkipTransform(node.property);
-              if (node.callee) markSkipTransform(node.callee);
-            };
+            // arrayWhiteWithLogical
+            // 检查是否为数组方法调用 如果是arrayWhiteWithLogical 的 就用 || [] 添加到后面
+            if (t.isMemberExpression(callee)) {
+              const functionName = callee.property?.name;
 
-            if (path.node.callee) {
-              markSkipTransform(path.node.callee);
+              // 如果是需要添加逻辑或默认值的数组方法
+              if (
+                transformer.arrayWhiteWithLogical.includes(functionName) &&
+                !t.isLogicalExpression(callee.object)
+              ) {
+                // 创建 || [] 的逻辑或表达式
+                const emptyArrayLiteral = t.arrayExpression([]);
+                const logicalOrExpression = t.logicalExpression(
+                  "||",
+                  callee.object,
+                  emptyArrayLiteral
+                );
+
+                // 创建新的成员表达式，将 callee.object 替换为 (callee.object || [])
+                const newCallee = t.memberExpression(
+                  logicalOrExpression,
+                  callee.property,
+                  callee.computed
+                );
+
+                // 创建新的可选调用表达式
+                const newOptionalCallExpression = t.optionalCallExpression(
+                  newCallee,
+                  path.node.arguments,
+                  false
+                );
+                newOptionalCallExpression._processed = true;
+
+                // 替换整个调用表达式
+                path.replaceWith(newOptionalCallExpression);
+                return;
+              }
             }
-            // 标记为已处理，避免重复转换
-            path.node._processed = true;
+
+            // 替换整个调用表达式
+            path.replaceWith(newOptionalCallExpression);
           },
           NewExpression(path) {
             // console.log(path);
