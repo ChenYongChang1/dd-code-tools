@@ -99,21 +99,6 @@ class OptionalChainTransformer {
   }
 
   /**
-   * 为赋值表达式生成去掉最后一层的可选链（如 a.b.c → a?.b）
-   * @param {Node} memberNode - 原始成员表达式节点
-   * @param {Object} t - Babel types
-   * @returns {Node} 去掉最后一层的可选链表达式
-   */
-  createOptionalMemberExprWithoutLastLevel(memberNode, t) {
-    // 如果只有一层（如 a.b），直接返回对象部分
-    if (!this.isMemberExpression(memberNode.object, t)) {
-      return memberNode.object;
-    }
-    // 递归处理对象部分，但不处理当前层
-    return this.createOptionalMemberExpr(memberNode.object, t);
-  }
-
-  /**
    * 跳过节点处理
    * @param {Path} path - 节点路径
    */
@@ -154,13 +139,13 @@ class OptionalChainTransformer {
         : firstName
     )?.replace(/__TS_GENERIC_\d+__/, "");
     const isHas = this.whitelist.includes(nodeName) || path.parent._isWhite;
-    if (
-      t.isAssignmentExpression(path.parent) &&
-      path.parent.left === path.node
-    ) {
-      this.skipNode(path);
-      return false;
-    }
+    // if (
+    //   t.isAssignmentExpression(path.parent) &&
+    //   path.parent.left === path.node
+    // ) {
+    //   this.skipNode(path);
+    //   return false;
+    // }
     if (isHas) {
       path.node._isWhite = true;
       // if(t.isCallExpression(path.node)){
@@ -181,11 +166,12 @@ class OptionalChainTransformer {
   createNodeAndAddOptional(memberNode, t) {
     // 2. 生成「原赋值表达式」节点（保持原样，不转换为可选链）
     const clonedMemberNode = t.cloneNode(memberNode);
+    const that = this;
     // 递归给克隆节点及其所有嵌套成员表达式添加标识，避免被重复处理
     function markProcessed(node) {
       if (node && typeof node === "object") {
         node._processed = true;
-        if (this.isMemberExpression(node, t)) {
+        if (that.isMemberExpression(node, t)) {
           markProcessed(node.object);
           markProcessed(node.property);
         }
@@ -250,8 +236,7 @@ class OptionalChainTransformer {
     if (t.isLogicalExpression(assignmentPath.parent)) return;
     assignmentPath.node._processed = true;
     // 使用去掉最后一层的可选链（如 a.b.c → a?.b）
-    const optionalMemberWithoutLast =
-      this.createOptionalMemberExprWithoutLastLevel(memberNode, t);
+    const optionalMemberWithoutLast = memberNode.object;
     const clonedMemberNode = this.createNodeAndAddOptional(memberNode, t);
     const originalAssignExpr = t.assignmentExpression(
       assignmentPath.node.operator, // 保持原操作符（=、+=、-= 等）
@@ -266,7 +251,7 @@ class OptionalChainTransformer {
     );
 
     // 标记整个逻辑与表达式为已处理，避免左侧被重复转换
-    if (andExpr?.left) andExpr.left._processed = true;
+    // if (andExpr?.left) andExpr.left._processed = true;
     if (andExpr?.right) andExpr.right._processed = true;
 
     // 4. 替换原赋值表达式为「逻辑与表达式」
@@ -302,7 +287,7 @@ class OptionalChainTransformer {
     return t.isMemberExpression(node) || t.isOptionalMemberExpression(node);
   }
   excuteArrayFunctionAndAddLogicalOr(path, t) {
-     const callee = path.node.callee;
+    const callee = path.node.callee;
     // 检查是否为数组方法调用 如果是arrayWhiteWithLogical 的 就用 || [] 添加到后面
 
     if (transformer.isMemberExpression(callee, t)) {
@@ -434,9 +419,9 @@ class OptionalChainTransformer {
 
             // 检查左侧是否为成员表达式
             if (transformer.isMemberExpression(node.left, t)) {
-              // console.log("发现赋值表达式:", path.getSource());
-              const memberNode = node.left;
-              const flag = transformer.commonCheckNeedWrap(path.get("left"), t);
+              const memberPath = path.get("left");
+              const memberNode = memberPath.node;
+              const flag = transformer.commonCheckNeedWrap(memberPath, t);
               if (flag) {
                 transformer.excuteAssignment(path, memberNode, t);
                 return;
@@ -449,7 +434,6 @@ class OptionalChainTransformer {
 
             // 检查操作数是否为成员表达式
             if (transformer.isMemberExpression(node.argument, t)) {
-              // console.log("发现自增自减表达式:", path.getSource());
               const memberNode = node.argument;
               const flag = transformer.commonCheckNeedWrap(
                 path.get("argument"),
