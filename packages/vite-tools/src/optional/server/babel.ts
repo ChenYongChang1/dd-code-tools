@@ -37,10 +37,19 @@ import ts from "typescript";
  * @description 负责将成员表达式转换为可选链形式，避免运行时错误
  */
 class OptionalChainTransformer {
-  whitelist: string[];
+  arrayArgumentWithLogical: string[];
   arrayWhiteWithLogical: string[];
+  whitelist: string[];
   constructor() {
-    this.arrayWhiteWithLogical = ["map", "filter"];
+    this.arrayArgumentWithLogical = ["concat"];
+    this.arrayWhiteWithLogical = [
+      "map",
+      "filter",
+      "slice",
+      "flat",
+      "flatMap",
+      ...this.arrayArgumentWithLogical,
+    ];
     // 白名单：不需要添加可选链的对象（如 window、console 等）
     this.whitelist = [
       "import",
@@ -51,11 +60,23 @@ class OptionalChainTransformer {
       "document",
       "global",
       "useState",
-      "useEffect",
       "useRef",
+      "useEffect",
       "useFetch",
       "useInit",
       "props",
+      "useState",
+      "Modal",
+      "useForm",
+      "Form",
+      "notification",
+      "message",
+      "store",
+      "JSON",
+      "localStorage",
+      "sessionStorage",
+      "Array",
+      "DatePicker",
     ];
   }
 
@@ -67,12 +88,14 @@ class OptionalChainTransformer {
    */
   createOptionalMemberExpr(memberNode, t) {
     // 生成当前层的可选链成员（optional: true 表示 ?.）
-    return t.optionalMemberExpression(
+    const node = t.optionalMemberExpression(
       memberNode.object, // 对象部分（已处理为可选链）
       memberNode.property, // 属性部分（如 b、c、[0]）
       memberNode.computed, // 是否为计算属性（如 [b] → true）
       true // optional: true → 启用 ?.
     );
+    node._processed = true;
+    return node;
   }
 
   /**
@@ -83,7 +106,7 @@ class OptionalChainTransformer {
    */
   createOptionalMemberExprWithoutLastLevel(memberNode, t) {
     // 如果只有一层（如 a.b），直接返回对象部分
-    if (!t.isMemberExpression(memberNode.object)) {
+    if (!this.isMemberExpression(memberNode.object, t)) {
       return memberNode.object;
     }
     // 递归处理对象部分，但不处理当前层
@@ -123,8 +146,9 @@ class OptionalChainTransformer {
     // 3. 跳过白名单对象（如 window、console 等）
     const firstName = getFirstName(node);
     const nodeName = (
-      node.type === "CallExpression" && node.callee
-        ? t.isMemberExpression(node.callee)
+      ["CallExpression", "OptionalCallExpression"].includes(node.type) &&
+      node.callee
+        ? this.isMemberExpression(node.callee, t)
           ? getFirstName(node.callee)
           : node.callee.name
         : firstName
@@ -139,6 +163,9 @@ class OptionalChainTransformer {
     }
     if (isHas) {
       path.node._isWhite = true;
+      // if(t.isCallExpression(path.node)){
+      //   return false;
+      // }
       // this.skipNode(path);
       return false;
     }
@@ -158,7 +185,7 @@ class OptionalChainTransformer {
     function markProcessed(node) {
       if (node && typeof node === "object") {
         node._processed = true;
-        if (t.isMemberExpression(node)) {
+        if (this.isMemberExpression(node, t)) {
           markProcessed(node.object);
           markProcessed(node.property);
         }
@@ -245,6 +272,87 @@ class OptionalChainTransformer {
     // 4. 替换原赋值表达式为「逻辑与表达式」
     assignmentPath.replaceWith(andExpr);
   }
+  excuteArguementCallExpression(path, t) {
+    debugger;
+    const callee = path.node.callee;
+    if (!this.isMemberExpression(callee, t)) return;
+    const argumentPath = path.get("arguments.0");
+    const emptyArrayLiteral = t.arrayExpression([]);
+    const argumentNode = argumentPath?.node;
+    const functionName = callee.property?.name;
+
+    if (
+      argumentNode &&
+      transformer.arrayArgumentWithLogical.includes(functionName) &&
+      !t.isLogicalExpression(argumentNode) &&
+      !argumentNode._processed
+    ) {
+      const logicalOrExpression = t.logicalExpression(
+        "||",
+        argumentNode,
+        emptyArrayLiteral
+      );
+
+      logicalOrExpression._processed = true;
+      // 使用路径对象来替换节点
+      argumentPath.replaceWith(logicalOrExpression);
+    }
+  }
+  isMemberExpression(node, t) {
+    return t.isMemberExpression(node) || t.isOptionalMemberExpression(node);
+  }
+  excuteArrayFunctionAndAddLogicalOr(path, t) {
+     const callee = path.node.callee;
+    // 检查是否为数组方法调用 如果是arrayWhiteWithLogical 的 就用 || [] 添加到后面
+
+    if (transformer.isMemberExpression(callee, t)) {
+      const functionName = callee.property?.name;
+
+      // 如果是需要添加逻辑或默认值的数组方法
+      if (
+        transformer.arrayWhiteWithLogical.includes(functionName) &&
+        !t.isLogicalExpression(callee.object)
+      ) {
+        const emptyArrayLiteral = t.arrayExpression([]);
+
+        const logicalOrExpression = t.logicalExpression(
+          "||",
+          callee.object,
+          emptyArrayLiteral
+        );
+
+        // 创建新的成员表达式，将 callee.object 替换为 (callee.object || [])
+        const newCallee = t.memberExpression(
+          logicalOrExpression,
+          callee.property,
+          callee.computed
+        );
+
+        // 创建新的可选调用表达式
+        const newOptionalCallExpression = t.optionalCallExpression(
+          newCallee,
+          path.node.arguments,
+          false
+        );
+        newOptionalCallExpression._processed = true;
+        path.replaceWith(newOptionalCallExpression);
+        // return newOptionalCallExpression;
+      }
+    }
+  }
+  excuteCallExpression(path, t) {
+    const callee = path.node.callee;
+
+    const newOptionalCallExpression = t.optionalCallExpression(
+      callee,
+      path.node.arguments,
+      false
+    );
+    newOptionalCallExpression._processed = true;
+
+    // arrayWhiteWithLogical
+    return newOptionalCallExpression;
+  }
   handleSpreadElement(path, t, defaultValue) {
     // const { argument } = node;
     const argument = path.get("argument");
@@ -325,10 +433,7 @@ class OptionalChainTransformer {
             if (node._processed) return;
 
             // 检查左侧是否为成员表达式
-            if (
-              t.isMemberExpression(node.left) ||
-              t.isOptionalMemberExpression(node.left)
-            ) {
+            if (transformer.isMemberExpression(node.left, t)) {
               // console.log("发现赋值表达式:", path.getSource());
               const memberNode = node.left;
               const flag = transformer.commonCheckNeedWrap(path.get("left"), t);
@@ -343,10 +448,7 @@ class OptionalChainTransformer {
             if (node._processed) return;
 
             // 检查操作数是否为成员表达式
-            if (
-              t.isMemberExpression(node.argument) ||
-              t.isOptionalMemberExpression(node.argument)
-            ) {
+            if (transformer.isMemberExpression(node.argument, t)) {
               // console.log("发现自增自减表达式:", path.getSource());
               const memberNode = node.argument;
               const flag = transformer.commonCheckNeedWrap(
@@ -375,62 +477,30 @@ class OptionalChainTransformer {
             path.replaceWith(optionalMember);
           },
           CallExpression(path) {
+            // console.log("当前遍历的源码:", path.getSource());
             // 避免重复处理：检查是否已经被处理过
             const flag = transformer.commonCheckNeedWrap(path, t);
             if (!flag) return;
             if (path.node._processed) return;
-            const callee = path.node.callee;
-            const newOptionalCallExpression = t.optionalCallExpression(
-              callee,
-              path.node.arguments,
-              false
+            transformer.excuteArguementCallExpression(path, t);
+            transformer.excuteArrayFunctionAndAddLogicalOr(path, t);
+            const newOptionalCallExpression = transformer.excuteCallExpression(
+              path,
+              t
             );
-            // newOptionalCallExpression._processed = true;
-
-            // arrayWhiteWithLogical
-            // 检查是否为数组方法调用 如果是arrayWhiteWithLogical 的 就用 || [] 添加到后面
-            if (t.isMemberExpression(callee)) {
-              const functionName = callee.property?.name;
-
-              // 如果是需要添加逻辑或默认值的数组方法
-              if (
-                transformer.arrayWhiteWithLogical.includes(functionName) &&
-                !t.isLogicalExpression(callee.object)
-              ) {
-                // 创建 || [] 的逻辑或表达式
-                const emptyArrayLiteral = t.arrayExpression([]);
-                const logicalOrExpression = t.logicalExpression(
-                  "||",
-                  callee.object,
-                  emptyArrayLiteral
-                );
-
-                // 创建新的成员表达式，将 callee.object 替换为 (callee.object || [])
-                const newCallee = t.memberExpression(
-                  logicalOrExpression,
-                  callee.property,
-                  callee.computed
-                );
-
-                // 创建新的可选调用表达式
-                const newOptionalCallExpression = t.optionalCallExpression(
-                  newCallee,
-                  path.node.arguments,
-                  false
-                );
-                newOptionalCallExpression._processed = true;
-
-                // 替换整个调用表达式
-                path.replaceWith(newOptionalCallExpression);
-                return;
-              }
-            }
-
             // 替换整个调用表达式
             path.replaceWith(newOptionalCallExpression);
           },
+          OptionalCallExpression(path) {
+            // console.log("当前遍历的源码:", path.getSource());
+            // 避免重复处理：检查是否已经被处理过
+            const flag = transformer.commonCheckNeedWrap(path, t);
+            if (!flag) return;
+            if (path.node._processed) return;
+            transformer.excuteArrayFunctionAndAddLogicalOr(path, t);
+            transformer.excuteArguementCallExpression(path, t);
+          },
           NewExpression(path) {
-            // console.log(path);
             if (path.node._processed) return;
 
             // 递归标记callee及其所有子节点，防止函数名被转换
