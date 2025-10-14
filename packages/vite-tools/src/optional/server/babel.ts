@@ -71,7 +71,6 @@ class OptionalChainTransformer {
       "Form",
       "notification",
       "message",
-      "store",
       "JSON",
       "localStorage",
       "sessionStorage",
@@ -125,7 +124,7 @@ class OptionalChainTransformer {
     //   return false;
     // }
     // 1. 跳过已是可选链的节点（避免重复处理）
-    if (node.optional) return false;
+    // if (node.optional) return false;
     // 2. 跳过已标记为处理过的节点（避免重复转换）
     if (node._processed) return false;
     // 3. 跳过白名单对象（如 window、console 等）
@@ -138,7 +137,7 @@ class OptionalChainTransformer {
           : node.callee.name
         : firstName
     )?.replace(/__TS_GENERIC_\d+__/, "");
-    const isHas = this.whitelist.includes(nodeName) || path.parent._isWhite;
+    const isHas = this.whitelist.includes(nodeName) || path._isWhite;
     // if (
     //   t.isAssignmentExpression(path.parent) &&
     //   path.parent.left === path.node
@@ -191,11 +190,11 @@ class OptionalChainTransformer {
     const parentNode = path.parent;
     const memberNode = path.node;
     // 1. 生成「可选链判空」节点（如 a.b.c → a?.b?.c）
-    const optionalMember = this.createOptionalMemberExpr(memberNode, t);
+    // const optionalMember = this.createOptionalMemberExpr(memberNode, t);
     // 在可选链判空后添加 ?.toString() 调用
     const optionalMemberWithToString = t.optionalCallExpression(
       t.optionalMemberExpression(
-        optionalMember,
+        memberNode,
         t.identifier("toString"),
         false,
         true
@@ -218,7 +217,7 @@ class OptionalChainTransformer {
     );
 
     // 标记整个逻辑与表达式为已处理，避免左侧被重复转换
-    if (andExpr?.left) andExpr.left._processed = true;
+    // if (andExpr?.left) andExpr.left._processed = true;
     if (andExpr?.right) andExpr.right._processed = true;
 
     // 4. 替换原自增表达式为「逻辑与表达式」（对齐目标 AST 的结构）
@@ -258,7 +257,6 @@ class OptionalChainTransformer {
     assignmentPath.replaceWith(andExpr);
   }
   excuteArguementCallExpression(path, t) {
-    debugger;
     const callee = path.node.callee;
     if (!this.isMemberExpression(callee, t)) return;
     const argumentPath = path.get("arguments.0");
@@ -358,6 +356,8 @@ class OptionalChainTransformer {
     return function ({ types: t }) {
       return {
         visitor: {
+          // UpdateExpression(path){},
+          // AssignmentExpression(path){}
           SpreadElement(path) {
             const parentType = path.parent.type;
             switch (parentType) {
@@ -431,9 +431,12 @@ class OptionalChainTransformer {
           UpdateExpression(path) {
             const node = path.node;
             if (node._processed) return;
-
+            if (t.isLogicalExpression(path.parent)) {
+              return;
+            }
             // 检查操作数是否为成员表达式
             if (transformer.isMemberExpression(node.argument, t)) {
+
               const memberNode = node.argument;
               const flag = transformer.commonCheckNeedWrap(
                 path.get("argument"),
@@ -451,7 +454,13 @@ class OptionalChainTransformer {
           },
           "MemberExpression|OptionalMemberExpression"(path) {
             // 打印一下遍历的当前的源码
-            // console.log("当前遍历的源码:", path.getSource());
+            if (
+              t.isAssignmentExpression(path.parent) &&
+              path.parent.left === path.node
+            ) {
+              // transformer.skipNode(path);
+              return;
+            }
             const flag = transformer.commonCheckNeedWrap(path, t);
             if (!flag) return;
             const optionalMember = transformer.createOptionalMemberExpr(
