@@ -104,39 +104,56 @@ export const removeDepFiles = async (config: string) => {
   let configRelatedFiles: string[] = getConfigInfo(rootConfig, ctxs);
   const fullFilesPath = getFullFiles(getBaseConfigPath(baseRoot));
   const { build } = await import("vite");
+  const importFiles: string[] = [];
   const result = await build({
     configFile: config,
     mode: "production",
     plugins: [
       {
-        name: "vite-tool:add-manifest",
+        name: "vite-tools:delete:importCode",
+        enforce: "pre",
+        transform(code, id) {
+          const that = this;
+          if (
+            !id.includes("node_modules") &&
+            [".ts", ".tsx", ".js", ".jsx", ".vue"].includes(path.extname(id))
+          ) {
+            const ast = getAstFile(code);
+            traverse(ast, {
+              ImportDeclaration(path) {
+                const importPath = path.node.source.value;
+                that.resolve(importPath, id).then((r) => {
+                  r && importFiles.push(r.id);
+                });
+              },
+            });
+          }
+        },
+      },
+      {
+        name: "vite-tools:delete:buildEnd",
         buildEnd() {
-          const modules = Array.from(this.getModuleIds())
+          const modules = Array.from(this.getModuleIds()).concat(importFiles);
+          const moduleMap = modules
             .filter((i) => !i.includes("node_modules"))
             .reduce((data, item) => {
               data[item] = true;
               return data;
             }, {} as Record<string, boolean>);
 
-          // 将配置相关文件也标记为已使用
           configRelatedFiles.forEach((file) => {
-            modules[file] = true;
+            moduleMap[file] = true;
           });
 
           const unUsedFiles = fullFilesPath.filter(
             (filePath) =>
-              !modules[filePath] && !ignoreCtx.some((i) => filePath.endsWith(i))
+              !moduleMap[filePath] &&
+              !ignoreCtx.some((i) => filePath.endsWith(i))
           );
           removeFiles(unUsedFiles);
           console.log("✅ 删除完成-------");
 
           process.exit(0);
-          // usedFiles.push(...modules);
-          // console.log(modules);
-          // for (const moduleId of modules) {
-          //   const moduleInfo = this.getModuleInfo(moduleId);
-          //   console.log(moduleInfo, "moduleInfo");
-          // }
         },
       },
     ],
