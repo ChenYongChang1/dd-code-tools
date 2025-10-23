@@ -1,6 +1,6 @@
 {
   "name": "@dd-code/vite-tools",
-  "version": "1.0.22",
+  "version": "1.0.22-beta.0.2",
   "description": "Vite-specific tools and utilities",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -39,15 +39,14 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@babel/core": "^7.28.4",
-    "@babel/parser": "^7.28.4",
-    "@babel/traverse": "^7.28.4",
-    "@babel/preset-typescript": "^7.27.1",
-    "@dd-code/shared": "workspace:*"
+    "@dd-code/babel-tools": "workspace:*",
+    "@dd-code/shared": "workspace:*",
+    "cli-progress": "^3.12.0"
   },
   "publishConfig": {
     "dependencies": {
-      "@dd-code/shared": "latest"
+      "@dd-code/shared": "latest",
+      "@dd-code/babel-tools": "latest"
     }
   },
   "devDependencies": {
@@ -62,8 +61,7 @@
     "vite": "6.0.6"
   },
   "peerDependencies": {
-    "vite": ">=4.0.0",
-    "@babel/preset-typescript": ">=7.27.1"
+    "vite": ">=4.0.0"
   },
   "keywords": [
     "vite",

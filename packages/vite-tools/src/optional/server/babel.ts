@@ -24,13 +24,10 @@
  * const transformer = new OptionalChainTransformer();
  * const result = transformer.transformCode('obj.a.b = 123;');
  * // 输出：obj?.a && (obj.a.b = 123);
- *
- * @author Chagee
- * @version 1.0.0
  */
 
-import babel from "@babel/core";
-import ts from "typescript";
+
+import { parse, traverse, types, generate } from "@dd-code/babel-tools";
 
 /**
  * 可选链转换器类
@@ -136,7 +133,7 @@ class OptionalChainTransformer {
           ? getFirstName(node.callee)
           : node.callee.name
         : firstName
-    )?.replace(/__TS_GENERIC_\d+__/, "");
+    );
     const isHas = this.whitelist.includes(nodeName) || path._isWhite;
     // if (
     //   t.isAssignmentExpression(path.parent) &&
@@ -162,7 +159,7 @@ class OptionalChainTransformer {
    * @param {Object} t - Babel types
    * @returns {Node} 克隆并标记的节点
    */
-  createNodeAndAddOptional(memberNode, t) {
+  copyNodeAndIgnoreTransform(memberNode, t) {
     // 2. 生成「原赋值表达式」节点（保持原样，不转换为可选链）
     const clonedMemberNode = t.cloneNode(memberNode);
     const that = this;
@@ -192,6 +189,7 @@ class OptionalChainTransformer {
     // 1. 生成「可选链判空」节点（如 a.b.c → a?.b?.c）
     // const optionalMember = this.createOptionalMemberExpr(memberNode, t);
     // 在可选链判空后添加 ?.toString() 调用
+    debugger;
     const optionalMemberWithToString = t.optionalCallExpression(
       t.optionalMemberExpression(
         memberNode,
@@ -204,7 +202,7 @@ class OptionalChainTransformer {
     );
 
     // 2. 生成「原自增表达式」节点（保持原样，不转换为可选链）
-    const clonedMemberNode = this.createNodeAndAddOptional(memberNode, t);
+    const clonedMemberNode = this.copyNodeAndIgnoreTransform(memberNode, t);
     const originalUpdateExpr = t.updateExpression(
       parentNode.operator, // 保持原操作符（++ 或 --）
       clonedMemberNode, // 克隆原成员表达式，不转换
@@ -236,7 +234,7 @@ class OptionalChainTransformer {
     assignmentPath.node._processed = true;
     // 使用去掉最后一层的可选链（如 a.b.c → a?.b）
     const optionalMemberWithoutLast = memberNode.object;
-    const clonedMemberNode = this.createNodeAndAddOptional(memberNode, t);
+    const clonedMemberNode = this.copyNodeAndIgnoreTransform(memberNode, t);
     const originalAssignExpr = t.assignmentExpression(
       assignmentPath.node.operator, // 保持原操作符（=、+=、-= 等）
       clonedMemberNode, // 克隆原成员表达式，不转换
@@ -297,20 +295,17 @@ class OptionalChainTransformer {
         !t.isLogicalExpression(callee.object)
       ) {
         const emptyArrayLiteral = t.arrayExpression([]);
-
         const logicalOrExpression = t.logicalExpression(
           "||",
           callee.object,
           emptyArrayLiteral
         );
-
         // 创建新的成员表达式，将 callee.object 替换为 (callee.object || [])
         const newCallee = t.memberExpression(
           logicalOrExpression,
           callee.property,
           callee.computed
         );
-
         // 创建新的可选调用表达式
         const newOptionalCallExpression = t.optionalCallExpression(
           newCallee,
@@ -353,292 +348,203 @@ class OptionalChainTransformer {
    */
   getPlugin() {
     const transformer = this;
-    return function ({ types: t }) {
-      return {
-        visitor: {
-          // UpdateExpression(path){},
-          // AssignmentExpression(path){}
-          SpreadElement(path) {
-            const parentType = path.parent.type;
-            switch (parentType) {
-              case "ArrayExpression":
-                transformer.handleSpreadElement(path, t, t.arrayExpression([]));
-                break;
-              case "ObjectExpression":
-                transformer.handleSpreadElement(
-                  path,
-                  t,
-                  t.objectExpression([])
-                );
-                break;
-            }
-          },
-          VariableDeclarator(path) {
-            const node = path.node;
-            if (!(t.isObjectPattern(node.id) || t.isArrayPattern(node.id)))
-              return;
+    // return function ({ types: t }) {
+    const t = types;
+    return {
+      // visitor: {
+      // UpdateExpression(path){},
+      // AssignmentExpression(path){}
+      SpreadElement(path) {
+        // console.log(path.getSource());
+        const parentType = path.parent.type;
+        switch (parentType) {
+          case "ArrayExpression":
+            transformer.handleSpreadElement(path, t, t.arrayExpression([]));
+            break;
+          case "ObjectExpression":
+            transformer.handleSpreadElement(path, t, t.objectExpression([]));
+            break;
+        }
+      },
+      VariableDeclarator(path) {
+        const node = path.node;
+        if (!(t.isObjectPattern(node.id) || t.isArrayPattern(node.id))) return;
+        const isObject = t.isObjectPattern(node.id);
+        if (node.init) {
+          const initPath = path.get("init");
+          const flag = transformer.commonCheckNeedWrap(initPath, t);
+          if (flag) {
+            // 检查是否已经有默认值（|| {} 或 || []）
+            const hasDefaultValue =
+              node.init.type === "LogicalExpression" &&
+              (node.init.right.type === "ObjectExpression" ||
+                node.init.right.type === "ArrayExpression");
 
-            const isObject = t.isObjectPattern(node.id);
-            // console.log(
-            //   `发现${isObject ? "对象" : "数组"}解构赋值:`,
-            //   path.getSource()
-            // );
-
-            if (node.init) {
-              const initPath = path.get("init");
-              const flag = transformer.commonCheckNeedWrap(initPath, t);
-              if (flag) {
-                // 检查是否已经有默认值（|| {} 或 || []）
-                const hasDefaultValue =
-                  node.init.type === "LogicalExpression" &&
-                  (node.init.right.type === "ObjectExpression" ||
-                    node.init.right.type === "ArrayExpression");
-
-                if (!hasDefaultValue) {
-                  const optionalInit = node.init;
-                  // 添加空值判断：对象解构用 {} ，数组解构用 []
-                  const defaultValue = isObject
-                    ? t.objectExpression([])
-                    : t.arrayExpression([]);
-                  const logicalOr = t.logicalExpression(
-                    "||",
-                    optionalInit,
-                    defaultValue
-                  );
-
-                  // 替换初始化表达式
-                  node.init = logicalOr;
-                  // console.log("转换后的解构赋值:", path.getSource());
-                }
-              }
-            }
-          },
-          AssignmentExpression(path) {
-            const node = path.node;
-            if (node._processed) return;
-
-            // 检查左侧是否为成员表达式
-            if (transformer.isMemberExpression(node.left, t)) {
-              const memberPath = path.get("left");
-              const memberNode = memberPath.node;
-              const flag = transformer.commonCheckNeedWrap(memberPath, t);
-              if (flag) {
-                transformer.excuteAssignment(path, memberNode, t);
-                return;
-              }
-            }
-          },
-          UpdateExpression(path) {
-            const node = path.node;
-            if (node._processed) return;
-            if (t.isLogicalExpression(path.parent)) {
-              return;
-            }
-            // 检查操作数是否为成员表达式
-            if (transformer.isMemberExpression(node.argument, t)) {
-
-              const memberNode = node.argument;
-              const flag = transformer.commonCheckNeedWrap(
-                path.get("argument"),
-                t
+            if (!hasDefaultValue) {
+              const optionalInit = node.init;
+              // 添加空值判断：对象解构用 {} ，数组解构用 []
+              const defaultValue = isObject
+                ? t.objectExpression([])
+                : t.arrayExpression([]);
+              const logicalOr = t.logicalExpression(
+                "||",
+                optionalInit,
+                defaultValue
               );
-              if (flag) {
-                node._processed = true;
-                transformer.createSelfAddOptionalNodeAndAfter(
-                  path.get("argument"),
-                  t
-                );
-                return;
-              }
+
+              // 替换初始化表达式
+              node.init = logicalOr;
+              // console.log("转换后的解构赋值:", path.getSource());
             }
-          },
-          "MemberExpression|OptionalMemberExpression"(path) {
-            // 打印一下遍历的当前的源码
-            if (
-              t.isAssignmentExpression(path.parent) &&
-              path.parent.left === path.node
-            ) {
-              // transformer.skipNode(path);
-              return;
-            }
-            const flag = transformer.commonCheckNeedWrap(path, t);
-            if (!flag) return;
-            const optionalMember = transformer.createOptionalMemberExpr(
-              path.node,
-              t
-            );
-            path.replaceWith(optionalMember);
-          },
-          CallExpression(path) {
-            // console.log("当前遍历的源码:", path.getSource());
-            // 避免重复处理：检查是否已经被处理过
-            const flag = transformer.commonCheckNeedWrap(path, t);
-            if (!flag) return;
-            if (path.node._processed) return;
-            transformer.excuteArguementCallExpression(path, t);
-            transformer.excuteArrayFunctionAndAddLogicalOr(path, t);
-            const newOptionalCallExpression = transformer.excuteCallExpression(
-              path,
-              t
-            );
-            // 替换整个调用表达式
-            path.replaceWith(newOptionalCallExpression);
-          },
-          OptionalCallExpression(path) {
-            // console.log("当前遍历的源码:", path.getSource());
-            // 避免重复处理：检查是否已经被处理过
-            const flag = transformer.commonCheckNeedWrap(path, t);
-            if (!flag) return;
-            if (path.node._processed) return;
-            transformer.excuteArrayFunctionAndAddLogicalOr(path, t);
-            transformer.excuteArguementCallExpression(path, t);
-          },
-          NewExpression(path) {
-            if (path.node._processed) return;
-
-            // 递归标记callee及其所有子节点，防止函数名被转换
-            const markSkipTransform = (node) => {
-              if (!node) return;
-              node._processed = true;
-              if (node.object) markSkipTransform(node.object);
-              if (node.property) markSkipTransform(node.property);
-              if (node.callee) markSkipTransform(node.callee);
-            };
-
-            if (path.node.callee) {
-              markSkipTransform(path.node.callee);
-            }
-            // 标记为已处理，避免重复转换
-            path.node._processed = true;
-            debugger;
-          },
-        },
-      };
-    };
-  }
-
-  /**
-   * 使用 TypeScript 编译器 API 提取泛型信息
-   * @param {string} code - 源代码
-   * @returns {Array} 泛型信息数组
-   */
-  extractGenericsWithTS(code) {
-    const sourceFile = ts.createSourceFile(
-      "temp.ts",
-      code,
-      ts.ScriptTarget.Latest,
-      true
-    );
-
-    const generics = [];
-
-    function visitNode(node) {
-      // 检查函数调用表达式的泛型参数
-      if (ts.isCallExpression(node) && node.typeArguments) {
-        // 获取函数名结束位置
-        const functionEnd = node.expression.getEnd();
-
-        // 找到 < 的位置
-        let angleStart = functionEnd;
-        while (angleStart < code.length && code[angleStart] !== "<") {
-          angleStart++;
-        }
-
-        // 找到对应的 > 的位置
-        let angleEnd = angleStart + 1;
-        let depth = 1;
-        while (angleEnd < code.length && depth > 0) {
-          if (code[angleEnd] === "<") {
-            depth++;
-          } else if (code[angleEnd] === ">") {
-            depth--;
           }
-          angleEnd++;
         }
+      },
+      AssignmentExpression(path) {
+        const node = path.node;
+        if (node._processed) return;
 
-        const typeArgsText = code.substring(angleStart, angleEnd);
+        // 检查左侧是否为成员表达式
+        if (transformer.isMemberExpression(node.left, t)) {
+          // console.log("发现赋值表达式:", path.getSource());
+          const memberPath = path.get("left");
+          const memberNode = memberPath.node;
+          const flag = transformer.commonCheckNeedWrap(memberPath, t);
+          if (flag) {
+            transformer.excuteAssignment(path, memberNode, t);
+            return;
+          }
+        }
+      },
+      UpdateExpression(path) {
+        const node = path.node;
+        if (node._processed) return;
+        if (t.isLogicalExpression(path.parent)) {
+          // console.log("发现逻辑表达式:", path.getSource());
 
-        generics.push({
-          start: angleStart,
-          end: angleEnd,
-          text: typeArgsText,
-          fullStart: node.expression.getStart(),
-          fullEnd: node.getEnd(),
-        });
-      }
+          return;
+        }
+        // 检查操作数是否为成员表达式
+        if (transformer.isMemberExpression(node.argument, t)) {
+          // console.log("发现自增自减表达式:", path.getSource());
+          const memberNode = node.argument;
+          const flag = transformer.commonCheckNeedWrap(path.get("argument"), t);
+          if (flag) {
+            node._processed = true;
+            transformer.createSelfAddOptionalNodeAndAfter(
+              path.get("argument"),
+              t
+            );
+            return;
+          }
+        }
+      },
+      "MemberExpression|OptionalMemberExpression"(path) {
+        // 打印一下遍历的当前的源码
+        // console.log("当前遍历的源码:", path.getSource());
+        if (
+          t.isAssignmentExpression(path.parent) &&
+          path.parent.left === path.node
+        ) {
+          // transformer.skipNode(path);
+          return;
+        }
+        const flag = transformer.commonCheckNeedWrap(path, t);
+        if (!flag) return;
+        const optionalMember = transformer.createOptionalMemberExpr(
+          path.node,
+          t
+        );
+        path.replaceWith(optionalMember);
+      },
+      CallExpression(path) {
+        // console.log("当前遍历的源码:", path.getSource());
+        // 避免重复处理：检查是否已经被处理过
+        const flag = transformer.commonCheckNeedWrap(path, t);
+        if (!flag) return;
+        if (path.node._processed) return;
+        // 处理参数
+        transformer.excuteArguementCallExpression(path, t);
+        // 处理数组的方法 比如 map, filter, reduce 等
+        transformer.excuteArrayFunctionAndAddLogicalOr(path, t);
+        const newOptionalCallExpression = transformer.excuteCallExpression(
+          path,
+          t
+        );
+        // 替换整个调用表达式
+        path.replaceWith(newOptionalCallExpression);
+      },
+      OptionalCallExpression(path) {
+        // console.log("当前遍历的源码:", path.getSource());
+        // 避免重复处理：检查是否已经被处理过
+        const flag = transformer.commonCheckNeedWrap(path, t);
+        if (!flag) return;
+        if (path.node._processed) return;
+        transformer.excuteArrayFunctionAndAddLogicalOr(path, t);
+        transformer.excuteArguementCallExpression(path, t);
+      },
+      NewExpression(path) {
+        if (path.node._processed) return;
 
-      // 递归遍历子节点
-      ts.forEachChild(node, visitNode);
-    }
+        // 递归标记callee及其所有子节点，防止函数名被转换
+        const markSkipTransform = (node) => {
+          if (!node) return;
+          node._processed = true;
+          if (node.object) markSkipTransform(node.object);
+          if (node.property) markSkipTransform(node.property);
+          if (node.callee) markSkipTransform(node.callee);
+        };
 
-    visitNode(sourceFile);
-    return generics;
+        if (path.node.callee) {
+          markSkipTransform(path.node.callee);
+        }
+        // 标记为已处理，避免重复转换
+        path.node._processed = true;
+        debugger;
+      },
+      // },
+    };
+    // };
   }
-
   /**
    * 转换代码
    * @param {string} code - 源代码
    * @returns {string} 转换后的代码
    */
-  transformCode(code) {
-    // 使用 TypeScript API 提取泛型信息
-    const generics = this.extractGenericsWithTS(code);
-
-    // 创建占位符映射
-    const placeholderMap = new Map();
-    let processedCode = code;
-
-    // 从后往前替换，避免位置偏移
-    generics.reverse().forEach((generic, index) => {
-      const placeholder = `__TS_GENERIC_${index}__`;
-      placeholderMap.set(placeholder, generic.text);
-
-      // 替换泛型部分为占位符
-      processedCode =
-        processedCode.substring(0, generic.start) +
-        placeholder +
-        processedCode.substring(generic.end);
+  getAstFile = (content) => {
+    return parse(content, {
+      sourceType: "module",
+      plugins: [
+        "typescript",
+        "jsx",
+        "importMeta",
+        "topLevelAwait",
+        "classProperties",
+        ["decorators", { decoratorsBeforeExport: true }],
+      ],
     });
-
-    let result;
+  };
+  transformCode(code) {
     try {
-      result = babel.transform(processedCode, {
-        code: true,
-        ast: false,
-        presets: [],
-        compact: false,
-        retainLines: true,
-        parserOpts: {
-          strictMode: false,
-          plugins: [
-            ["typescript", { isTSX: false, allowDeclareFields: true }],
-            "jsx",
-            ["decorators", { decoratorsBeforeExport: true }],
-          ],
-        },
-        generatorOpts: {
-          semicolons: false,
-          compact: false,
-          minified: false,
-          concise: false,
-          retainLines: true,
-          retainFunctionParens: true,
-        },
-        plugins: [this.getPlugin()],
-      });
+      debugger
+      const ast = this.getAstFile(code);
+      traverse(ast, this.getPlugin());
+      const result = generate(ast, { retainLines: true, compact: false, comments: true });
+      // console.log(result);
+      return result.code;
     } catch (error) {
       console.error("Babel transform error:", error);
+      debugger
       return code;
     }
 
-    let finalCode = result.code || processedCode;
+    // let finalCode = result.code || processedCode;
 
-    // 恢复泛型语法
-    placeholderMap.forEach((originalText, placeholder) => {
-      finalCode = finalCode.replace(placeholder, originalText);
-    });
+    // // 恢复泛型语法
+    // placeholderMap.forEach((originalText, placeholder) => {
+    //   finalCode = finalCode.replace(placeholder, originalText);
+    // });
 
-    return finalCode;
+    // return finalCode;
   }
 }
 
