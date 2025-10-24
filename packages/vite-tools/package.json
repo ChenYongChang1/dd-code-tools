@@ -1,6 +1,6 @@
 {
   "name": "@dd-code/vite-tools",
-  "version": "1.0.23",
+  "version": "1.0.24",
   "description": "Vite-specific tools and utilities",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

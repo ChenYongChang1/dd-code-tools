@@ -313,6 +313,8 @@ class OptionalChainTransformer {
           false
         );
         newOptionalCallExpression._processed = true;
+        newOptionalCallExpression.typeParameters = path.node.typeParameters;
+
         path.replaceWith(newOptionalCallExpression);
         // return newOptionalCallExpression;
       }
@@ -327,6 +329,7 @@ class OptionalChainTransformer {
       false
     );
     newOptionalCallExpression._processed = true;
+    newOptionalCallExpression.typeParameters = path.node.typeParameters;
 
     // arrayWhiteWithLogical
     return newOptionalCallExpression;
