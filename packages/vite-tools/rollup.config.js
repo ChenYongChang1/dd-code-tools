@@ -24,7 +24,7 @@ const genreOutputs = (format) => ({
 export default [
   // 主构建配置
   {
-    input: "src/shared.ts",
+    input: "src/plugins.ts",
     output: ['cjs','esm'].map(genreOutputs),
     external,
     plugins: [

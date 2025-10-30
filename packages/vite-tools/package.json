@@ -22,10 +22,10 @@
       "import": "./dist/index.esm.js",
       "require": "./dist/index.js"
     },
-    "./shared": {
-      "types": "./dist/shared.d.ts",
-      "import": "./dist/shared.esm.js",
-      "require": "./dist/shared.cjs.js"
+    "./plugins": {
+      "types": "./dist/plugins.d.ts",
+      "import": "./dist/plugins.esm.js",
+      "require": "./dist/plugins.cjs.js"
     },
     "./web": {
       "types": "./dist/web.d.ts",

@@ -192,16 +192,50 @@ class FindDepFiles {
   getDependencesFiles(that: any, moduleId: string, result = new Set<string>()) {
     if (this.checkModuleIsNeedCopy(result, moduleId)) {
       result.add(moduleId);
+      // [id]: {id, children: []}
+      // deepResult.push(row);
       const moduleInfo = that.getModuleInfo(moduleId);
       if (moduleInfo) {
         const { importedIds, dynamicallyImportedIds } = moduleInfo;
-        [...importedIds, ...dynamicallyImportedIds].forEach((dep) => {
+        const resultImports = [...importedIds, ...dynamicallyImportedIds];
+        resultImports.forEach((dep) => {
           this.getDependencesFiles(that, dep, result);
         });
       }
     }
 
     return Array.from(result);
+  }
+  getDeepDependencesFiles(
+    that: any,
+    moduleId: string,
+    fn: (id: string) => string = (a) => a,
+    result = new Set<string>()
+  ) {
+    const pageModuleId = fn(moduleId);
+    // const tempResult = {}
+    /**
+     */
+    const tempRow = { id: pageModuleId, children: [] };
+    if (this.checkModuleIsNeedCopy(result, pageModuleId)) {
+      result.add(pageModuleId);
+
+      // [id]: {id, children: []}
+      // deepResult.push(row);
+
+      debugger
+      const moduleInfo = that.getModuleInfo(moduleId);
+      if (moduleInfo) {
+        const { importedIds, dynamicallyImportedIds } = moduleInfo;
+        const resultImports = [...importedIds, ...dynamicallyImportedIds];
+        resultImports.forEach((dep) => {
+          const resultRow = this.getDeepDependencesFiles(that, dep, fn, result);
+          tempRow.children.push(resultRow);
+        });
+      }
+    }
+
+    return tempRow;
   }
   findCopyFiles() {
     const basePath = this.root;
@@ -233,7 +267,7 @@ class FindDepFiles {
   }
 }
 
-const findDepFilesInstance = new FindDepFiles();
+export const findDepFilesInstance = new FindDepFiles();
 
 export const findDepFiles = async (options: {
   fileName: string;
