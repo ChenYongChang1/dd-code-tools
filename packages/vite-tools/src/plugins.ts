@@ -4,21 +4,26 @@
 //   transformCode,
 import { excuteGetFileDep } from "./find/index";
 import path from "path";
+import { findDepFilesInstance } from "./find/server";
 
 // } from "./optional/server/babel";
-export const getImportFileDeepPlugin = (fileArr = []) => {
+export const getImportFileDeepPlugin = (fileArr = [], recursive = true) => {
   const root = process.cwd();
   return {
     name: "dd-code:vite-findImportFile",
-    apply: 'build',
+    apply: "build",
     generateBundle(options, bundles) {
       // import("./find/index").then(({ excuteGetFileDep }) => {
       // console.log(bundles, excuteGetFileDep);
-      const func = excuteGetFileDep(this, { recursive: true });
+      const func = excuteGetFileDep(this, { recursive });
       const files = fileArr.map((i) => path.resolve(root, i));
       const result = func(files);
-      console.log(result);
-      debugger;
+      // findDepFilesInstance.writeFileSync();
+      findDepFilesInstance.writeSavedFiles(
+        Math.random().toString(36).slice(2),
+        result
+      );
+      process.exit(0);
 
       // debugger;
       // debugger;

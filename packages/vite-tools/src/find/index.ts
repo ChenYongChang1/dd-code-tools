@@ -137,5 +137,8 @@ export const excuteGetFileDep = (ctx, { recursive }) => {
 
     return { importers: Array.from(allImporters), graph };
   }
-  return (targetAbs) => findImportersInRollupContext(ctx, targetAbs);
+  return (targetAbs) => {
+    const { importers } = findImportersInRollupContext(ctx, targetAbs);
+    return Array.from(new Set(importers.map((i) => normalizeId(i))));
+  };
 };

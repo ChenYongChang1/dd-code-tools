@@ -177,9 +177,12 @@ class FindDepFiles {
   writeSavedFiles = (fullName: string, files: string[]) => {
     const savedFiles = this.getSavedFiles();
     savedFiles[fullName] = files;
-    fs.writeFileSync(this.BASE_FILE_PATH, JSON.stringify(savedFiles, null, 2));
-    console.log(`文件内容已生成-->\n${this.BASE_FILE_PATH}`);
+    this.writeFileSync(savedFiles);
   };
+  writeFileSync(json: any) {
+    fs.writeFileSync(this.BASE_FILE_PATH, JSON.stringify(json, null, 2));
+    console.log(`文件内容已生成-->\n${this.BASE_FILE_PATH}`);
+  }
   checkModuleIsNeedCopy(result: Set<string>, moduleId: string) {
     return (
       moduleId &&
@@ -205,37 +208,6 @@ class FindDepFiles {
     }
 
     return Array.from(result);
-  }
-  getDeepDependencesFiles(
-    that: any,
-    moduleId: string,
-    fn: (id: string) => string = (a) => a,
-    result = new Set<string>()
-  ) {
-    const pageModuleId = fn(moduleId);
-    // const tempResult = {}
-    /**
-     */
-    const tempRow = { id: pageModuleId, children: [] };
-    if (this.checkModuleIsNeedCopy(result, pageModuleId)) {
-      result.add(pageModuleId);
-
-      // [id]: {id, children: []}
-      // deepResult.push(row);
-
-      debugger
-      const moduleInfo = that.getModuleInfo(moduleId);
-      if (moduleInfo) {
-        const { importedIds, dynamicallyImportedIds } = moduleInfo;
-        const resultImports = [...importedIds, ...dynamicallyImportedIds];
-        resultImports.forEach((dep) => {
-          const resultRow = this.getDeepDependencesFiles(that, dep, fn, result);
-          tempRow.children.push(resultRow);
-        });
-      }
-    }
-
-    return tempRow;
   }
   findCopyFiles() {
     const basePath = this.root;
