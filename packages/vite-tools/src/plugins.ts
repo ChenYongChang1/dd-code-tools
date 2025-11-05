@@ -5,6 +5,7 @@
 import { excuteGetFileDep } from "./find/index";
 import path from "path";
 import { findDepFilesInstance } from "./find/server";
+export { transformCode } from './optional/index'
 
 // } from "./optional/server/babel";
 export const getImportFileDeepPlugin = (fileArr = [], recursive = true) => {

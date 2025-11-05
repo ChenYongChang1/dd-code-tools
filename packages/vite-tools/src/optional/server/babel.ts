@@ -1,3 +1,4 @@
+// @ts-ignore
 /**
  * 可选链转换器 - Babel插件
  *
@@ -34,10 +35,8 @@ import { parse, traverse, types, generate } from "@dd-code/babel-tools";
  * @description 负责将成员表达式转换为可选链形式，避免运行时错误
  */
 class OptionalChainTransformer {
-  arrayArgumentWithLogical: string[];
-  arrayWhiteWithLogical: string[];
-  whitelist: string[];
   constructor() {
+    this.types = types;
     this.arrayArgumentWithLogical = ["concat"];
     this.arrayWhiteWithLogical = [
       "map",
@@ -126,14 +125,13 @@ class OptionalChainTransformer {
     if (node._processed) return false;
     // 3. 跳过白名单对象（如 window、console 等）
     const firstName = getFirstName(node);
-    const nodeName = (
+    const nodeName =
       ["CallExpression", "OptionalCallExpression"].includes(node.type) &&
       node.callee
         ? this.isMemberExpression(node.callee, t)
           ? getFirstName(node.callee)
           : node.callee.name
-        : firstName
-    );
+        : firstName;
     const isHas = this.whitelist.includes(nodeName) || path._isWhite;
     // if (
     //   t.isAssignmentExpression(path.parent) &&
@@ -162,19 +160,18 @@ class OptionalChainTransformer {
   copyNodeAndIgnoreTransform(memberNode, t) {
     // 2. 生成「原赋值表达式」节点（保持原样，不转换为可选链）
     const clonedMemberNode = t.cloneNode(memberNode);
-    const that = this;
     // 递归给克隆节点及其所有嵌套成员表达式添加标识，避免被重复处理
-    function markProcessed(node) {
-      if (node && typeof node === "object") {
-        node._processed = true;
-        if (that.isMemberExpression(node, t)) {
-          markProcessed(node.object);
-          markProcessed(node.property);
-        }
+    this.markProcessed(clonedMemberNode, t);
+    return clonedMemberNode;
+  }
+  markProcessed(node, t) {
+    if (node && typeof node === "object") {
+      node._processed = true;
+      if (this.isMemberExpression(node, t)) {
+        this.markProcessed(node.object, t);
+        this.markProcessed(node.property, t);
       }
     }
-    markProcessed(clonedMemberNode);
-    return clonedMemberNode;
   }
 
   /**
@@ -189,7 +186,7 @@ class OptionalChainTransformer {
     // 1. 生成「可选链判空」节点（如 a.b.c → a?.b?.c）
     // const optionalMember = this.createOptionalMemberExpr(memberNode, t);
     // 在可选链判空后添加 ?.toString() 调用
-    debugger;
+    // debugger;
     const optionalMemberWithToString = t.optionalCallExpression(
       t.optionalMemberExpression(
         memberNode,
@@ -229,8 +226,10 @@ class OptionalChainTransformer {
    * @param {Node} memberNode - 成员表达式节点
    * @param {Object} t - Babel types
    */
-  excuteAssignment(assignmentPath, memberNode, t) {
-    if (t.isLogicalExpression(assignmentPath.parent)) return;
+  excuteAssignment(assignmentPath, memberPath, t) {
+    const memberNode = memberPath.node;
+    const isMember = t.isMemberExpression(memberPath)
+    if (t.isLogicalExpression(assignmentPath.parent) || !isMember) return;
     assignmentPath.node._processed = true;
     // 使用去掉最后一层的可选链（如 a.b.c → a?.b）
     const optionalMemberWithoutLast = memberNode.object;
@@ -264,15 +263,35 @@ class OptionalChainTransformer {
 
     if (
       argumentNode &&
-      transformer.arrayArgumentWithLogical.includes(functionName) &&
+      this.arrayArgumentWithLogical.includes(functionName) &&
       !t.isLogicalExpression(argumentNode) &&
       !argumentNode._processed
     ) {
-      const logicalOrExpression = t.logicalExpression(
-        "||",
-        argumentNode,
-        emptyArrayLiteral
-      );
+      let logicalOrExpression = argumentNode;
+      if (t.isSpreadElement(argumentNode)) {
+        const argument = argumentNode.argument;
+        if (!t.isLogicalExpression(argument)) {
+          argumentNode.argument = t.logicalExpression(
+            "||",
+            argument,
+            emptyArrayLiteral
+          );
+        }
+        // argumentNode.argument =
+      } else {
+        logicalOrExpression = t.logicalExpression(
+          "||",
+          argumentNode,
+          emptyArrayLiteral
+        );
+      }
+      // const logicalOrExpression = t.isSpreadElement(argumentNode)
+      //   ? argumentNode.argument
+      //   : t.logicalExpression(
+      //       "||",
+      //       argumentNode,
+      //       emptyArrayLiteral
+      //     );
 
       logicalOrExpression._processed = true;
       // 使用路径对象来替换节点
@@ -286,20 +305,18 @@ class OptionalChainTransformer {
     const callee = path.node.callee;
     // 检查是否为数组方法调用 如果是arrayWhiteWithLogical 的 就用 || [] 添加到后面
 
-    if (transformer.isMemberExpression(callee, t)) {
+    if (this.isMemberExpression(callee, t)) {
       const functionName = callee.property?.name;
 
       // 如果是需要添加逻辑或默认值的数组方法
       if (
-        transformer.arrayWhiteWithLogical.includes(functionName) &&
+        this.arrayWhiteWithLogical.includes(functionName) &&
         !t.isLogicalExpression(callee.object)
       ) {
         const emptyArrayLiteral = t.arrayExpression([]);
-        const logicalOrExpression = t.logicalExpression(
-          "||",
-          callee.object,
-          emptyArrayLiteral
-        );
+        const logicalOrExpression = t.isArrayExpression(callee.object)
+          ? callee.object
+          : t.logicalExpression("||", callee.object, emptyArrayLiteral);
         // 创建新的成员表达式，将 callee.object 替换为 (callee.object || [])
         const newCallee = t.memberExpression(
           logicalOrExpression,
@@ -312,9 +329,8 @@ class OptionalChainTransformer {
           path.node.arguments,
           false
         );
-        newOptionalCallExpression._processed = true;
         newOptionalCallExpression.typeParameters = path.node.typeParameters;
-
+        newOptionalCallExpression._processed = true;
         path.replaceWith(newOptionalCallExpression);
         // return newOptionalCallExpression;
       }
@@ -330,7 +346,6 @@ class OptionalChainTransformer {
     );
     newOptionalCallExpression._processed = true;
     newOptionalCallExpression.typeParameters = path.node.typeParameters;
-
     // arrayWhiteWithLogical
     return newOptionalCallExpression;
   }
@@ -405,16 +420,35 @@ class OptionalChainTransformer {
       AssignmentExpression(path) {
         const node = path.node;
         if (node._processed) return;
-
+        // 获取当前便利的源码
+        const source = path.toString();
         // 检查左侧是否为成员表达式
-        if (transformer.isMemberExpression(node.left, t)) {
+        if (!t.isLogicalExpression(path.parent)) {
           // console.log("发现赋值表达式:", path.getSource());
           const memberPath = path.get("left");
-          const memberNode = memberPath.node;
           const flag = transformer.commonCheckNeedWrap(memberPath, t);
           if (flag) {
-            transformer.excuteAssignment(path, memberNode, t);
+            transformer.excuteAssignment(path, memberPath, t);
             return;
+          }
+        } else {
+          const memberPath = path.get("left");
+          const memberNode = memberPath.node;
+          transformer.markProcessed(memberNode, t);
+        }
+      },
+      BinaryExpression: (path) => {
+        const node = path.node;
+        if (node.operator === "in") {
+          const isLogical =
+            t.isLogicalExpression(node.right) ||
+            t.isLogicalExpression(path.parent);
+          if (!isLogical) {
+            node.right = t.logicalExpression(
+              "||",
+              node.right,
+              t.arrayExpression([])
+            );
           }
         }
       },
@@ -422,7 +456,8 @@ class OptionalChainTransformer {
         const node = path.node;
         if (node._processed) return;
         if (t.isLogicalExpression(path.parent)) {
-          // console.log("发现逻辑表达式:", path.getSource());
+          // console.log("发现逻辑表达式:", path.toString());
+          transformer.markProcessed(node.argument, t);
 
           return;
         }
@@ -458,6 +493,7 @@ class OptionalChainTransformer {
           t
         );
         path.replaceWith(optionalMember);
+        // path.stop()
       },
       CallExpression(path) {
         // console.log("当前遍历的源码:", path.getSource());
@@ -502,19 +538,35 @@ class OptionalChainTransformer {
         }
         // 标记为已处理，避免重复转换
         path.node._processed = true;
-        debugger;
+        // debugger;
       },
       // },
     };
     // };
   }
+
   /**
    * 转换代码
    * @param {string} code - 源代码
    * @returns {string} 转换后的代码
    */
-  getAstFile = (content) => {
+  getAstFile = (content, opt = {}) => {
     return parse(content, {
+      sourceType: "module",
+      errorRecovery: true,
+      plugins: [
+        "typescript",
+        "jsx",
+        "importMeta",
+        "topLevelAwait",
+        "classProperties",
+        ["decorators", { decoratorsBeforeExport: true }],
+      ],
+      ...opt,
+    });
+  };
+  getExpressionAst = (content, opt = {}) => {
+    const astExpression = parseExpression(content, {
       sourceType: "module",
       plugins: [
         "typescript",
@@ -524,47 +576,76 @@ class OptionalChainTransformer {
         "classProperties",
         ["decorators", { decoratorsBeforeExport: true }],
       ],
+      ...opt,
     });
+    const ast = this.getAstFile("a");
+    ast.program.body = [types.expressionStatement(astExpression)];
+    return ast;
   };
-  transformCode(code) {
+  transformJsExpression(code) {
+    if (code?.trim?.() === "") return code;
     try {
-      debugger
-      const ast = this.getAstFile(code);
-      traverse(ast, this.getPlugin());
-      const result = generate(ast, { retainLines: true, compact: false, comments: true });
-      // console.log(result);
+      const exprAst = this.getExpressionAst(code);
+
+      this.traverseAst(exprAst, this.getPlugin.bind(this)());
+      // 取遍历后的最新表达式（可能已被 replaceWith 替换）
+      // const outExpr = ast.body[0].expression;
+      const result = generate(exprAst, {
+        semicolons: false,
+        compact: false,
+      });
       return result.code;
     } catch (error) {
-      console.error("Babel transform error:", error);
-      debugger
-      return code;
+      // debugger;
+      return this.transformJsCode(code);
+      // console.error("Babel transform expression error:", error);
+      // return code;
     }
+  }
+  traverseAst = (ast, plugin) => {
+    traverse(ast, plugin);
+  };
+  generateAst = (ast, _opt = {}) => {
+    const { removeLast, ...opt } = _opt;
+    const result = generate(ast, {
+      semicolons: false, // 核心配置：不添加分号
+      compact: false, // 可选：不压缩代码（便于查看格式）
+      ...opt,
+    });
+    if (removeLast) {
+      const newCode = result.code.replace(/;\s*$/, "").trim();
+      return {
+        ...result,
+        code: newCode,
+      };
+    }
+    return result;
+  };
+  handErrorCode = (code, ast) => {
+    debugger;
+  };
+  transformJsCode(code) {
+    if (code?.trim?.() === "") return code;
+    const removeStartAndEndSpace = code.trim();
 
-    // let finalCode = result.code || processedCode;
-
-    // // 恢复泛型语法
-    // placeholderMap.forEach((originalText, placeholder) => {
-    //   finalCode = finalCode.replace(placeholder, originalText);
-    // });
-
-    // return finalCode;
+    // try {
+    const ast = this.getAstFile(removeStartAndEndSpace);
+    const plugin = this.getPlugin.bind(this)();
+    // 如果解析存在错误，依据错误类型决定是否继续遍历
+    if (Array.isArray(ast.errors) && ast.errors.length > 0) {
+      // 不对当前节点及其子节点进行作用域分析，不创建 Scope 对象，也不跟踪变量的声明和引用。
+      plugin.noScope = true;
+    }
+    this.traverseAst(ast, plugin);
+    const result = this.generateAst(ast, { removeLast: true });
+    return code.replace(removeStartAndEndSpace, result.code);
+    // } catch (error) {
+    //   debugger;
+    //   console.error("Babel transform error:", error, code);
+    //   return code;
+    // }
   }
 }
 
-// 创建默认实例
-const transformer = new OptionalChainTransformer();
-
-/**
- * 默认的代码转换函数
- * @param {string} code - 需要转换的源代码
- * @returns {string} 转换后的代码
- */
-export const transformCode = (code: string) => {
-  const result = transformer.transformCode(code);
-
-  return result;
-};
-// module.exports.transformCode = (code) => transformer.transformCode(code);
-
 // 导出类和实例供外部使用
-export { OptionalChainTransformer, transformer };
+export { OptionalChainTransformer };
