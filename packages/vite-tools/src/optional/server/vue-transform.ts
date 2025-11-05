@@ -312,9 +312,14 @@ class OptionalVueTransformer extends OptionalChainTransformer {
 
     // debugger;
   }
-  transformHtmlCode(html) {
+  /**
+   * 转换 HTML 代码中的 Mustache 表达式
+   * @param {string} html - 包含 Mustache 表达式的 HTML 字符串
+   * @returns {string} 转换后的 HTML 字符串
+   */
+  transformHtmlCode(html: string) {
     // 预先保护 Mustache 内容，避免解析/序列化阶段编码或结构干扰
-    const mustacheList = [];
+    const mustacheList: string[] = [];
     const protectedHtml = html.replace(
       /{{\s*([\s\S]*?)\s*}}/g,
       (match, inner) => {
@@ -340,7 +345,7 @@ class OptionalVueTransformer extends OptionalChainTransformer {
         case "tag":
           // console.log(node.name, node.attribs);
 
-          this.handlerTagCode(node);
+          // this.handlerTagCode(node);
           break;
         case "text":
           this.handlerTextCode(node);

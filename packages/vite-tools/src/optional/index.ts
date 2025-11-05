@@ -32,11 +32,15 @@ export const transfromCodeByDirFile = (filterFileNames: string[]) => {
   // console.log({ filterFileNames }, "-----");
 
   filterFileNames.forEach((fileName, index) => {
+    const extname = path.extname(fileName)?.replace(".", "");
     // console.log(`start transform -------- ${index}/${len}`);
     // console.log(`fileName: ${fileName}`);
     bar.update(index + 1);
     const content = fs.readFileSync(fileName, "utf-8");
-    const transformContent = transformCode(content);
+    const transformContent = transformCode(content, extname, fileName);
+    if (transformContent === content) {
+      throw Error(`transformContent === content, fileName: ${fileName}`);
+    }
     if (transformContent) {
       fs.writeFileSync(fileName, transformContent, "utf-8");
     }

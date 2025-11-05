@@ -6,7 +6,14 @@ class Transform extends OptionalVueTransformer {
   constructor() {
     super();
   }
-  transformCode(code, fileType, filePath) {
+  /**
+   * 转换代码的主方法
+   * @param {string} code - 需要转换的源代码
+   * @param {string} fileType - 文件类型（如："js", "ts", "vue"）
+   * @param {string} filePath - 文件路径（用于错误日志）
+   * @returns {string} 转换后的代码
+   */
+  transformCode(code: string, fileType: string, filePath: string) {
     const that = this;
     try {
       switch (fileType) {
