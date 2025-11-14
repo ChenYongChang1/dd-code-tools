@@ -1,0 +1,55 @@
+{
+  "name": "@dd-code/sandbox",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "rollup -c --watch",
+    "build": "rollup -c",
+    "clean": "rm -rf dist"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js"
+    },
+    "./shared": {
+      "types": "./dist/shared.d.ts",
+      "import": "./dist/shared.esm.js",
+      "require": "./dist/shared.cjs.js"
+    }
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-typescript": "^12.1.4",
+    "@types/postcss-prefix-selector": "^1.16.3",
+    "commander": "^9.4.1",
+    "rollup": "^4.52.0",
+    "rollup-plugin-dts": "^6.2.3",
+    "tslib": "^2.8.1",
+    "typescript": "^5.9.2",
+    "vite": "6.0.6"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@babel/generator": "^7.28.3",
+    "@babel/parser": "^7.28.4",
+    "@babel/traverse": "^7.28.4",
+    "@dd-code/babel-tools": "workspace:*",
+    "@dd-code/shared": "workspace:*",
+    "@rollup/pluginutils": "^5.3.0",
+    "postcss": "^8.5.6",
+    "postcss-prefix-selector": "^2.1.1"
+  },
+  "publishConfig": {
+    "dependencies": {
+      "@dd-code/shared": "latest",
+      "@dd-code/babel-tools": "latest"
+    }
+  }
+}

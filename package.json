@@ -1,0 +1,52 @@
+{
+  "name": "@dd-code/tools",
+  "version": "0.0.2",
+  "description": "A monorepo for code utilities",
+  "workspaces": [
+    "packages/*"
+  ],
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "pnpm --filter=* --parallel dev",
+    "build": "pnpm --filter=* build",
+    "build:uni-tools": "pnpm --filter=@dd/uni-tools build",
+    "build:vite-tools": "pnpm --filter=@dd/vite-tools build",
+    "build:shared": "pnpm --filter=@dd/shared build"
+  },
+  "exports": {
+    "./shared": {
+      "import": "./dist/shared/index.js",
+      "require": "./dist/shared/index.cjs"
+    },
+    "./uni": {
+      "import": "./dist/uni/index.js",
+      "require": "./dist/uni/index.cjs"
+    },
+    "./vite": {
+      "import": "./dist/vite/index.js",
+      "require": "./dist/vite/index.cjs"
+    }
+  },
+  "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
+    "@types/babel__core": "^7.20.5",
+    "@types/babel__traverse": "^7.28.0",
+    "@types/minimist": "^1.2.2",
+    "@types/mustache": "^4.2.5",
+    "@types/node": "^18.11.6",
+    "es-module-lexer": "^1.6.0",
+    "rimraf": "^3.0.2",
+    "rollup-plugin-unused": "^0.1.1",
+    "typescript": "^4.8.4",
+    "vite": "6.0.6",
+    "vite-plugin-node": "^4.0.0"
+  },
+  "peerDependencies": {
+    "vite": ">=4.0.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
