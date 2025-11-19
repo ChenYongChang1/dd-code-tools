@@ -7,7 +7,7 @@ import dts from "rollup-plugin-dts";
 
 // 检查是否为开发模式（用于 link 调试）
 // 条件性 external - 开发模式下不 external，生产模式下 external
-const external = ["vite"];
+const external = ["vite", "@dd-code/babel-tools"];
 
 export default [
   {
