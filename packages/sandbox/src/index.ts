@@ -1,7 +1,13 @@
 import { Plugin, TransformResult } from "vite";
 import { createFilter } from "@rollup/pluginutils";
 import { postCssPlugin } from "./css";
-import { astTranform, importProxyWindow } from "./js/utils";
+import {
+  astTranform,
+  astTranformSandBoxDistFile,
+  checkSandBoxDistFile,
+  checkTransformScope,
+  importProxyWindow,
+} from "./js/utils";
 import { proxyWinVarName } from "./js/config";
 import { viteLoadPlugin, viteResolveIdPlugin } from "./js";
 
@@ -19,7 +25,10 @@ interface SandboxOptions {
 
 export default (options: SandboxOptions): Plugin[] => {
   const appCode = options.appCode || "app";
-  const filter = createFilter(options.include || [], options.exclude || []);
+  const filter = createFilter(
+    options.include || [],
+    options.exclude || [/.*\/sandbox\/.*/]
+  );
   // vue :deep postcss 处理插件
   const sandboxOptions = options.sandboxOptions || {};
   const postcssOptions = options.postcssOptions;
@@ -31,6 +40,7 @@ export default (options: SandboxOptions): Plugin[] => {
     "[data-vxe-ui-theme=",
   ];
   // const sandboxOptions = options.sandboxOptions || {};
+  const mapmap = {};
   const defaultPerfix = `.${appCode}`;
   const perfixOpt =
     (typeof options.perfix === "function"
@@ -59,11 +69,33 @@ export default (options: SandboxOptions): Plugin[] => {
       },
       async transform(code, id) {
         const isFilter = await filter(id);
-        if (!isFilter) {
-          return undefined;
+        const isScoped = checkTransformScope(id);
+        if (id.includes("sandbox")) {
+          (mapmap as any)[id] = isFilter;
+          console.log(JSON.stringify(mapmap));
         }
+
+        if (checkSandBoxDistFile(id)) {
+          // console.log(id, "id");
+          // code = astTranformSandBoxDistFile(code);
+        }
+        if (id.includes("sandbox")) {
+          console.log({ id, isFilter, isScoped }, "idididid");
+        }
+        if(id === code){
+          return code
+        }
+        if (!isFilter || !isScoped) {
+          return code
+        }
+        // if (id === "virtual:@dd-code/sandbox/shared") {
+        //   console.log({ id }, "idididid");
+        //   return `${importProxyWindow(proxyWinVarName)}${code}`
+        // }
         try {
           const replaceCode = astTranform(code, proxyWinVarName);
+          // console.log(`${importProxyWindow(proxyWinVarName)}`);
+
           return {
             code: `${importProxyWindow(proxyWinVarName)}${replaceCode}`,
             map: null,

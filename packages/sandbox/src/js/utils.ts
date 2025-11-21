@@ -129,7 +129,7 @@ export function astTranform(code: string, proxyWinVarName: string) {
 
 export const importProxyWindow = (proxyWinVarName: string) => {
   return `
-  import ${proxyWinVarName} from '@dd-code/sandbox?virtual=true';
+  import ${proxyWinVarName} from 'virtual:@dd-code/sandbox/shared';
   `;
 };
 
@@ -230,6 +230,79 @@ export function rebindTarget2Fn(target: any, fn: Function) {
   }
 
   return fn;
+}
+
+/**
+ * 判断是否是sandbox dist文件
+ * @param {*} url
+ * @returns
+ */
+export function checkSandBoxDistFile(url: string) {
+  if (
+    ["dd-code", "sandbox", "shared", 'virtual:@dd-code/sandbox/shared'].some(
+      (item) => url.indexOf(item) !== -1
+    )
+  ) {
+    return true;
+  }
+}
+/**
+ * 检测是否需要转换
+ * @param {*} pkg
+ * @returns
+ */
+export function checkTransformScope(url: string) {
+  const urlSplits = url.split("?");
+  const uri = urlSplits[0];
+  const query = urlSplits[1] || "";
+  const ext = uri.split(".").pop();
+
+  // if (
+  //   url.indexOf('@chagee_vite-plugin-sandbox_dist_sandbox') !== -1 ||
+  //   url.indexOf('vite-plugin-sandbox/dist/sandbox') !== -1
+  // ) {
+  //   return false;
+  // }
+  // console.log(url);
+
+  if (checkSandBoxDistFile(url)) {
+    return false;
+  }
+
+  // if (code.indexOf(`var __commonJS`) !== -1) {
+  //   return false;
+  // }
+  if (ext && !["js", "mjs", "ts", "vue", "jsx", "tsx"].includes(ext)) {
+    return false;
+  }
+  if (uri.indexOf("node_modules/vite/dist") !== -1) {
+    return false;
+  }
+  if (ext === "vue" && query.indexOf("vue&type=style") === 0) {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * 删除sandbox包里的Polyfill引用，避免循环引用问题
+ * @param {*} code
+ * @returns
+ */
+export function astTranformSandBoxDistFile(code: string) {
+  const ast = parse(code, {
+    sourceType: "module",
+  });
+
+  traverse(ast, {
+    ImportDeclaration: (path) => {
+      path.remove();
+    },
+  });
+
+  const output = generate(ast, {}, code);
+
+  return output.code;
 }
 
 export const hasOwnProperty = Object.prototype.hasOwnProperty;

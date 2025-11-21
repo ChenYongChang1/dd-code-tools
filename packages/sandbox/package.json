@@ -16,7 +16,7 @@
     "./shared": {
       "types": "./dist/shared.d.ts",
       "import": "./dist/shared.esm.js",
-      "require": "./dist/shared.cjs.js"
+      "require": "./dist/shared.js"
     }
   },
   "devDependencies": {

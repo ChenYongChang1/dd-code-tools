@@ -73,13 +73,36 @@ export class ProxySandbox {
     // document 代理：接管 body 插入、defaultView 事件等
     this.document = new Proxy(globalContext.document, {
       get(docTarget, docProp) {
-        if(docProp === 'querySelector') {
+        if (docProp === "querySelector") {
           return function (...args: any) {
-            if (args[0] === 'body') {
+            if (args[0] === "body") {
               return self.document.body;
             }
             return rebindTarget2Fn(docTarget, docTarget[docProp])(...args);
           };
+        } else if (docProp === "body") {
+          if (!proxyCache.has(docTarget.body)) {
+            const bodyProxy = new Proxy(docTarget.body, {
+              get(bodyTarget: Record<string, any>, bodyProp: string) {
+                if (
+                  ["replaceChild", "appendChild", "insertBefore"].includes(
+                    bodyProp
+                  )
+                ) {
+                  console.log('------');
+
+                }
+                return rebindTarget2Fn(bodyTarget, bodyTarget[bodyProp]);
+              },
+              set(bodyTarget: Record<string, any>, p: string, value) {
+                bodyTarget[p] = value;
+                return true;
+              },
+            });
+            (bodyProxy as any).__origin_el = docTarget.body;
+            proxyCache.set(docTarget.body, bodyProxy);
+          }
+          return proxyCache.get(docTarget.body);
         }
         // return Reflect.get(target, prop, receiver);
       },
