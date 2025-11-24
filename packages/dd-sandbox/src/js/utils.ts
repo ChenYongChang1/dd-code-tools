@@ -1,4 +1,14 @@
 import { parse, generate, traverse } from "@dd-code/babel-tools";
+// import { parse } from "@babel/parser";
+// import traverseModule from "@babel/traverse";
+// import typesModule from "@babel/types";
+// import generateModule from "@babel/generator";
+
+// // 兼容 CJS/ESM 默认导出差异，统一导出函数/对象
+// const traverse = ((traverseModule as any).default || (traverseModule as any)) as typeof traverseModule;
+// const types = ((typesModule as any).default || (typesModule as any)) as typeof typesModule;
+// const generate = ((generateModule as any).default || (generateModule as any)) as typeof generateModule;
+
 import { globalVariableWhiteList } from "./config";
 
 const fnRegexCheckCacheMap = new WeakMap();
@@ -238,7 +248,7 @@ export function rebindTarget2Fn(target: any, fn: Function) {
  * @returns
  */
 export function checkSandBoxDistFile(url: string) {
-  if (["dd-sandbox"].some((item) => url.indexOf(item) !== -1)) {
+  if (["dd-sandbox", "babel-tools"].some((item) => url.indexOf(item) !== -1)) {
     return true;
   }
 }

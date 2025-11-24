@@ -90,6 +90,70 @@ importers:
         specifier: ^5.4.5
         version: 5.9.2
 
+  packages/dd-sandbox:
+    dependencies:
+      '@babel/parser':
+        specifier: ^7.28.4
+        version: 7.28.4
+      '@babel/traverse':
+        specifier: ^7.28.4
+        version: 7.28.4
+      '@dd-code/babel-tools':
+        specifier: workspace:*
+        version: link:../babel-tools
+      '@dd-code/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@rollup/pluginutils':
+        specifier: ^5.3.0
+        version: 5.3.0(rollup@4.52.2)
+      postcss:
+        specifier: ^8.5.6
+        version: 8.5.6
+      postcss-prefix-selector:
+        specifier: ^2.1.1
+        version: 2.1.1(postcss@8.5.6)
+    devDependencies:
+      '@babel/generator':
+        specifier: ^7.28.3
+        version: 7.28.3
+      '@babel/types':
+        specifier: ^7.28.4
+        version: 7.28.4
+      '@rollup/plugin-commonjs':
+        specifier: ^28.0.6
+        version: 28.0.6(rollup@4.52.2)
+      '@rollup/plugin-json':
+        specifier: ^6.1.0
+        version: 6.1.0(rollup@4.52.2)
+      '@rollup/plugin-node-resolve':
+        specifier: ^16.0.1
+        version: 16.0.1(rollup@4.52.2)
+      '@rollup/plugin-typescript':
+        specifier: ^12.1.4
+        version: 12.1.4(rollup@4.52.2)(tslib@2.8.1)(typescript@5.9.2)
+      '@types/postcss-prefix-selector':
+        specifier: ^1.16.3
+        version: 1.16.3
+      commander:
+        specifier: ^9.4.1
+        version: 9.5.0
+      rollup:
+        specifier: ^4.52.0
+        version: 4.52.2
+      rollup-plugin-dts:
+        specifier: ^6.2.3
+        version: 6.2.3(rollup@4.52.2)(typescript@5.9.2)
+      tslib:
+        specifier: ^2.8.1
+        version: 2.8.1
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.2
+      vite:
+        specifier: 6.0.6
+        version: 6.0.6(@types/node@18.19.127)(terser@5.44.0)
+
   packages/sandbox:
     dependencies:
       '@babel/generator':
