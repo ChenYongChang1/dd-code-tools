@@ -129,7 +129,7 @@ export function astTranform(code: string, proxyWinVarName: string) {
 
 export const importProxyWindow = (proxyWinVarName: string) => {
   return `
-  import ${proxyWinVarName} from 'virtual:@dd-code/sandbox/shared';
+  import ${proxyWinVarName} from 'virtual:@dd-code/dd-sandbox/shared';
   `;
 };
 
@@ -238,11 +238,7 @@ export function rebindTarget2Fn(target: any, fn: Function) {
  * @returns
  */
 export function checkSandBoxDistFile(url: string) {
-  if (
-    ["dd-code", "sandbox", "shared", 'virtual:@dd-code/sandbox/shared'].some(
-      (item) => url.indexOf(item) !== -1
-    )
-  ) {
+  if (["dd-sandbox"].some((item) => url.indexOf(item) !== -1)) {
     return true;
   }
 }

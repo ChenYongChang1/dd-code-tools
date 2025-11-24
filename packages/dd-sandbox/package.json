@@ -1,5 +1,5 @@
 {
-  "name": "@dd-code/sandbox",
+  "name": "@dd-code/dd-sandbox",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -10,13 +10,13 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.esm.js",
-      "require": "./dist/index.js"
+      "import": "./dist/index.mjs.js",
+      "require": "./dist/index.cjs.js"
     },
     "./shared": {
       "types": "./dist/shared.d.ts",
-      "import": "./dist/shared.esm.js",
-      "require": "./dist/shared.js"
+      "import": "./dist/shared.mjs.js",
+      "require": "./dist/shared.cjs.js"
     }
   },
   "devDependencies": {

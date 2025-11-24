@@ -14,11 +14,11 @@ export default [
     input: "src/index.ts",
     output: [
       {
-        file: "dist/index.js",
+        file: "dist/index.cjs.js",
         format: "cjs",
       },
       {
-        file: "dist/index.mjs",
+        file: "dist/index.mjs.js",
         format: "es",
       },
     ],
@@ -46,11 +46,11 @@ export default [
     input: "src/shared.ts",
     output: [
       {
-        file: "dist/shared.js",
+        file: "dist/shared.cjs.js",
         format: "cjs",
       },
       {
-        file: "dist/shared.mjs",
+        file: "dist/shared.mjs.js",
         format: "es",
       },
     ],

@@ -27,7 +27,7 @@ export default (options: SandboxOptions): Plugin[] => {
   const appCode = options.appCode || "app";
   const filter = createFilter(
     options.include || [],
-    options.exclude || [/.*\/sandbox\/.*/]
+    options.exclude || [/.*\/dd-sandbox\/.*/]
   );
   // vue :deep postcss 处理插件
   const sandboxOptions = options.sandboxOptions || {};
@@ -55,7 +55,7 @@ export default (options: SandboxOptions): Plugin[] => {
         if (!isFilterCss || !isCssFile) {
           return undefined;
         }
-        return await postCssPlugin(perfixOpt, code, { include, exclude });
+        // return await postCssPlugin(perfixOpt, code, { include, exclude });
       },
     },
     {
