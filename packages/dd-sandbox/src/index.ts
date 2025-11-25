@@ -7,7 +7,7 @@ import {
   checkSandBoxDistFile,
   checkTransformScope,
   importProxyWindow,
-} from "./js/utils";
+} from "./plugins/index";
 import { proxyWinVarName } from "./js/config";
 import { viteLoadPlugin, viteResolveIdPlugin } from "./js";
 
@@ -27,7 +27,11 @@ export default (options: SandboxOptions): Plugin[] => {
   const appCode = options.appCode || "app";
   const filter = createFilter(
     options.include || [],
-    options.exclude || [/.*\/dd-sandbox\/.*/]
+    options.exclude || [
+      /.*\/dd-sandbox\/.*/,
+      /.*\/babel-tools\/.*/,
+      "virtual:@dd-code/dd-sandbox*",
+    ]
   );
   // vue :deep postcss 处理插件
   const sandboxOptions = options.sandboxOptions || {};
@@ -70,32 +74,11 @@ export default (options: SandboxOptions): Plugin[] => {
       async transform(code, id) {
         const isFilter = await filter(id);
         const isScoped = checkTransformScope(id);
-        if (id.includes("sandbox")) {
-          (mapmap as any)[id] = isFilter;
-          console.log(JSON.stringify(mapmap));
+        if (!isFilter || !isScoped || id === code) {
+          return code;
         }
-
-        if (checkSandBoxDistFile(id)) {
-          // console.log(id, "id");
-          // code = astTranformSandBoxDistFile(code);
-        }
-        if (id.includes("sandbox")) {
-          console.log({ id, isFilter, isScoped }, "idididid");
-        }
-        if(id === code){
-          return code
-        }
-        if (!isFilter || !isScoped) {
-          return code
-        }
-        // if (id === "virtual:@dd-code/sandbox/shared") {
-        //   console.log({ id }, "idididid");
-        //   return `${importProxyWindow(proxyWinVarName)}${code}`
-        // }
         try {
           const replaceCode = astTranform(code, proxyWinVarName);
-          // console.log(`${importProxyWindow(proxyWinVarName)}`);
-
           return {
             code: `${importProxyWindow(proxyWinVarName)}${replaceCode}`,
             map: null,

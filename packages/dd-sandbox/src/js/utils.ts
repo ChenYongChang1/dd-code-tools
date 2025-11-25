@@ -1,15 +1,6 @@
-import { parse, generate, traverse } from "@dd-code/babel-tools";
-// import { parse } from "@babel/parser";
-// import traverseModule from "@babel/traverse";
-// import typesModule from "@babel/types";
-// import generateModule from "@babel/generator";
-
-// // 兼容 CJS/ESM 默认导出差异，统一导出函数/对象
-// const traverse = ((traverseModule as any).default || (traverseModule as any)) as typeof traverseModule;
-// const types = ((typesModule as any).default || (typesModule as any)) as typeof typesModule;
-// const generate = ((generateModule as any).default || (generateModule as any)) as typeof generateModule;
-
-import { globalVariableWhiteList } from "./config";
+// import { globalVariableWhiteList } from "./config";
+import { globalsInBrowser } from "./globals";
+export { without, isFunction } from "./lodash-es";
 
 const fnRegexCheckCacheMap = new WeakMap();
 export function isConstructable(fn: Function) {
@@ -105,212 +96,6 @@ export function isBoundedFunction(fn: Function) {
   return bounded;
 }
 
-/**
- * 转换文件，主要是将window替换为${PROXY_WIN}.proxy
- * @param {*} code
- * @returns
- */
-export function astTranform(code: string, proxyWinVarName: string) {
-  const ast = parse(code, {
-    sourceType: "module",
-  });
-
-  traverse(ast, {
-    ReferencedIdentifier(path) {
-      if (!path.scope.getBinding(path.node.name)) {
-        if (
-          ["arguments", "process", proxyWinVarName].includes(path.node.name)
-        ) {
-          return;
-        }
-        if (path.node.name === "window") {
-          path.node.name = `${proxyWinVarName}.proxy`;
-        } else {
-          path.node.name = `${proxyWinVarName}.proxy.${path.node.name}`;
-        }
-      }
-    },
-  });
-
-  const output = generate(ast, {}, code);
-
-  return output.code;
-}
-
-export const importProxyWindow = (proxyWinVarName: string) => {
-  return `
-  import ${proxyWinVarName} from 'virtual:@dd-code/dd-sandbox/shared';
-  `;
-};
-
-export const checkGlobalVarWhiteList = (varWhiteList: (string | RegExp)[]) => {
-  const globalVarWhiteList = globalVariableWhiteList.concat(varWhiteList || []);
-
-  return (p: string) => {
-    if (typeof p === "string") {
-      if (globalVarWhiteList.indexOf(p) !== -1) {
-        return true;
-      }
-      // 如果globalVarWhiteList里的正则匹配到p，返回true
-      return globalVarWhiteList.some((reg) => {
-        if (reg instanceof RegExp) {
-          return reg.test(p);
-        }
-        return false;
-      });
-    }
-  };
-};
-
-const functionBoundedValueMap = new WeakMap();
-
-export function rebindTarget2Fn(target: any, fn: Function) {
-  /*
-    将函数绑定到指定 target（典型场景：把原生 API 绑定到 native window），避免 Illegal invocation：
-    - 仅绑定满足 isCallable && !isBoundedFunction && !isConstructable 的函数对象；
-    - 使用 WeakMap 做目标缓存（target + fn）避免重复绑定；
-    - 复制实例属性与原型，确保如 console、atob 这类对象在沙箱中行为不变；
-    注意：判定逻辑较为克制，避免误触发 iframe/top window 的跨域安全异常。
-   */
-  if (isCallable(fn) && !isBoundedFunction(fn) && !isConstructable(fn)) {
-    const cachedBoundFunction = functionBoundedValueMap.get(fn);
-    if (cachedBoundFunction && cachedBoundFunction.target === target) {
-      return cachedBoundFunction.value;
-    }
-
-    const boundValue = Function.prototype.bind.call(fn, target);
-
-    // 有些可调用函数有自定义字段，需要手动复制到绑定后的函数。比如 Math 相关工具方法。
-    Object.getOwnPropertyNames(fn).forEach((key) => {
-      // 边界值可能是一个代理，我们需要检查属性key是否存
-      if (!boundValue.hasOwnProperty(key)) {
-        Object.defineProperty(
-          boundValue,
-          key,
-          Object.getOwnPropertyDescriptor(fn, key)!
-        );
-      }
-    });
-
-    // 若绑定后函数缺失 prototype 而原函数拥有，则手动复制原型（多数原型为不可枚举）
-    if (
-      fn.hasOwnProperty("prototype") &&
-      !boundValue.hasOwnProperty("prototype")
-    ) {
-      // 不使用赋值操作符设置 prototype，避免触发只读或 getter-only 的描述符抛错
-      Object.defineProperty(boundValue, "prototype", {
-        value: fn.prototype,
-        enumerable: false,
-        writable: true,
-      });
-    }
-
-    // 保持 toString 行为：绑定函数默认 toString 为 "function(){[native code]}"，与原始结果不一致，需要纠正
-    if (typeof fn.toString === "function") {
-      const valueHasInstanceToString =
-        fn.hasOwnProperty("toString") && !boundValue.hasOwnProperty("toString");
-      const boundValueHasPrototypeToString =
-        boundValue.toString === Function.prototype.toString;
-
-      if (valueHasInstanceToString || boundValueHasPrototypeToString) {
-        const originToStringDescriptor = Object.getOwnPropertyDescriptor(
-          valueHasInstanceToString ? fn : Function.prototype,
-          "toString"
-        );
-
-        Object.defineProperty(
-          boundValue,
-          "toString",
-          Object.assign(
-            {},
-            originToStringDescriptor,
-            originToStringDescriptor?.get
-              ? null
-              : { value: () => fn.toString() }
-          )
-        );
-      }
-    }
-
-    functionBoundedValueMap.set(fn, {
-      target,
-      value: boundValue,
-    });
-    return boundValue;
-  }
-
-  return fn;
-}
-
-/**
- * 判断是否是sandbox dist文件
- * @param {*} url
- * @returns
- */
-export function checkSandBoxDistFile(url: string) {
-  if (["dd-sandbox", "babel-tools"].some((item) => url.indexOf(item) !== -1)) {
-    return true;
-  }
-}
-/**
- * 检测是否需要转换
- * @param {*} pkg
- * @returns
- */
-export function checkTransformScope(url: string) {
-  const urlSplits = url.split("?");
-  const uri = urlSplits[0];
-  const query = urlSplits[1] || "";
-  const ext = uri.split(".").pop();
-
-  // if (
-  //   url.indexOf('@chagee_vite-plugin-sandbox_dist_sandbox') !== -1 ||
-  //   url.indexOf('vite-plugin-sandbox/dist/sandbox') !== -1
-  // ) {
-  //   return false;
-  // }
-  // console.log(url);
-
-  if (checkSandBoxDistFile(url)) {
-    return false;
-  }
-
-  // if (code.indexOf(`var __commonJS`) !== -1) {
-  //   return false;
-  // }
-  if (ext && !["js", "mjs", "ts", "vue", "jsx", "tsx"].includes(ext)) {
-    return false;
-  }
-  if (uri.indexOf("node_modules/vite/dist") !== -1) {
-    return false;
-  }
-  if (ext === "vue" && query.indexOf("vue&type=style") === 0) {
-    return false;
-  }
-  return true;
-}
-
-/**
- * 删除sandbox包里的Polyfill引用，避免循环引用问题
- * @param {*} code
- * @returns
- */
-export function astTranformSandBoxDistFile(code: string) {
-  const ast = parse(code, {
-    sourceType: "module",
-  });
-
-  traverse(ast, {
-    ImportDeclaration: (path) => {
-      path.remove();
-    },
-  });
-
-  const output = generate(ast, {}, code);
-
-  return output.code;
-}
-
 export const hasOwnProperty = Object.prototype.hasOwnProperty;
 
 export const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
@@ -318,3 +103,33 @@ export const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 export const defineProperty = Object.defineProperty;
 
 export const windowProperties = ["top", "parent", "self", "window", "document"];
+// 获取原生全局对象（不受代理与作用域影响），确保在不同上下文中统一引用
+export const nativeGlobal = new Function("return this")();
+
+/**
+ * 函数将一个数组转换为一个对象:['a', 'b', 'c'] --> { a: true, b: true, c: true }
+ * @param array
+ */
+export function array2TruthyObject(array: string[]) {
+  return array.reduce((acc, key) => {
+    acc[key] = true;
+    return acc;
+  }, Object.create(null));
+}
+
+// 浏览器全局属性
+// 浏览器全局属性：来自 globals.js 列表，转为 map 提升查询性能
+export const cachedGlobalsInBrowser = array2TruthyObject(
+  globalsInBrowser.concat(
+    process.env.NODE_ENV === "test" ? ["mockNativeWindowFunction"] : []
+  )
+);
+
+// 判断一个属性是不是浏览器全局属性
+// 判断某属性是否为浏览器全局属性（通过预缓存的 map 快速判断）
+export function isNativeGlobalProp(prop: string) {
+  return prop in cachedGlobalsInBrowser;
+}
+
+// 获取原生 document 引用，避免被沙箱或 with 作用域干扰
+// export const nativeDocument = new Function("return document")();

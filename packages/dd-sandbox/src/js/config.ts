@@ -25,3 +25,8 @@ export const globalVariableWhiteList = [
   "__VUE_HMR_RUNTIME__",
   ...variableWhiteListInDev,
 ];
+
+// 每次访问需要特殊处理的全局（防止越权或逃逸）
+export const accessingSpiedGlobals = ["document", "top", "parent", "eval"];
+
+export const overwrittenGlobals = ["window", "self", "globalThis", "hasOwnProperty"];
