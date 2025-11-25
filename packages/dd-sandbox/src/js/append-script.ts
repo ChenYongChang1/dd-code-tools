@@ -30,7 +30,7 @@ function manualInvokeElementOnError(element: HTMLScriptElement) {
   const errorEvent = new CustomEvent("error");
   const patchedEvent = patchCustomEvent(errorEvent, () => element);
   if (isFunction(element.onerror)) {
-    element.onerror(patchedEvent);
+    element?.onerror?.(patchedEvent);
   } else {
     element.dispatchEvent(patchedEvent);
   }

@@ -55,11 +55,11 @@ export default (options: SandboxOptions): Plugin[] => {
       name: "dd-code:sandbox-css",
       async transform(code, id) {
         const isFilterCss = filter(id);
-        const isCssFile = /(s|l)?css/.test(id);
-        if (!isFilterCss || !isCssFile) {
+        const isCssFile = /(s|l)?css$/.test(id?.split("?")?.[0]);
+        if (!isFilterCss || !isCssFile || !code) {
           return undefined;
         }
-        // return await postCssPlugin(perfixOpt, code, { include, exclude });
+        return await postCssPlugin(perfixOpt, code, { include, exclude });
       },
     },
     {

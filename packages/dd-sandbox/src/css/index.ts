@@ -22,7 +22,8 @@ export const postCssPlugin = async (
       },
     }),
   ];
-  const result = await postcss(plugins).process(code);
+
+  const result = await postcss(plugins).process(code || '');
   // @ts-ignore
   return { code: result.css, map: result.map };
 };
