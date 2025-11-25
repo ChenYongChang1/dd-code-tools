@@ -1,7 +1,7 @@
 {
   "name": "@dd-code/dd-sandbox",
-  "version": "1.0.0",
-  "main": "index.js",
+  "version": "1.0.2",
+  "main": "./dist/index.mjs.js",
   "types": "./dist/index.d.ts",
   "scripts": {
     "dev": "rollup -c --watch",
@@ -41,7 +41,6 @@
   "description": "",
   "dependencies": {
     "@dd-code/babel-tools": "workspace:*",
-    "@dd-code/shared": "workspace:*",
     "@rollup/pluginutils": "^5.3.0",
     "import-html-entry": "^1.17.0",
     "postcss": "^8.5.6",
@@ -49,7 +48,6 @@
   },
   "publishConfig": {
     "dependencies": {
-      "@dd-code/shared": "latest",
       "@dd-code/babel-tools": "latest"
     }
   }

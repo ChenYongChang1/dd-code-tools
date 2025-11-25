@@ -27,11 +27,7 @@ export default (options: SandboxOptions): Plugin[] => {
   const appCode = options.appCode || "app";
   const filter = createFilter(
     options.include || [],
-    options.exclude || [
-      /.*\/dd-sandbox\/.*/,
-      /.*\/babel-tools\/.*/,
-      "virtual:@dd-code/dd-sandbox*",
-    ]
+    options.exclude || [/.*\/dd-sandbox\/.*/, "*virtual:@dd-code/dd-sandbox*"]
   );
   // vue :deep postcss 处理插件
   const sandboxOptions = options.sandboxOptions || {};
@@ -44,7 +40,6 @@ export default (options: SandboxOptions): Plugin[] => {
     "[data-vxe-ui-theme=",
   ];
   // const sandboxOptions = options.sandboxOptions || {};
-  const mapmap = {};
   const defaultPerfix = `.${appCode}`;
   const perfixOpt =
     (typeof options.perfix === "function"
@@ -55,7 +50,8 @@ export default (options: SandboxOptions): Plugin[] => {
       name: "dd-code:sandbox-css",
       async transform(code, id) {
         const isFilterCss = filter(id);
-        const isCssFile = /(s|l)?css$/.test(id?.split("?")?.[0]);
+        const isCssFile = /(sc|le|c)?ss$/.test(id?.split("?")?.[0]);
+
         if (!isFilterCss || !isCssFile || !code) {
           return undefined;
         }
@@ -74,6 +70,9 @@ export default (options: SandboxOptions): Plugin[] => {
       async transform(code, id) {
         const isFilter = await filter(id);
         const isScoped = checkTransformScope(id);
+        if (checkSandBoxDistFile(id)) {
+          code = astTranformSandBoxDistFile(code);
+        }
         if (!isFilter || !isScoped || id === code) {
           return code;
         }

@@ -1,6 +1,6 @@
 {
   "name": "@dd-code/babel-tools",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Babel plugin to extract and replace Chinese literals with i18n keys",
   "main": "./dist/index.esm.js",
   "module": "./dist/index.esm.js",

@@ -7,7 +7,7 @@ import dts from "rollup-plugin-dts";
 
 // 检查是否为开发模式（用于 link 调试）
 // 条件性 external - 开发模式下不 external，生产模式下 external
-const external = ["vite", "@dd-code/babel-tools", 'lodash-es'];
+const external = ["vite", "@dd-code/babel-tools"];
 
 export default [
   {
@@ -46,11 +46,19 @@ export default [
     input: "src/shared.ts",
     output: [
       {
-        file: "dist/shared.cjs.js",
+        dir: "dist",
+        // file: "dist/shared.cjs.js",
+        minifyInternalExports: true,
+        preserveEntrySignatures: "strict", // 关键配置
+        chunkFileNames: `[name].cjs.js`,
         format: "cjs",
       },
       {
-        file: "dist/shared.mjs.js",
+        dir: "dist",
+        // file: "dist/shared.mjs.js",
+        minifyInternalExports: true,
+        preserveEntrySignatures: "strict", // 关键配置
+        chunkFileNames: `[name].mjs.js`,
         format: "es",
       },
     ],

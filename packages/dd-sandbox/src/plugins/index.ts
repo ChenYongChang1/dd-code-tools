@@ -5,7 +5,7 @@ import { parse, generate, traverse } from "@dd-code/babel-tools";
  * @returns
  */
 export function checkSandBoxDistFile(url: string) {
-  if (["dd-sandbox"].some((item) => url.indexOf(item) !== -1)) {
+  if (["dd-code_dd-sandbox_shared"].some((item) => url.indexOf(item) !== -1)) {
     return true;
   }
 }
@@ -54,10 +54,7 @@ export function checkTransformScope(url: string) {
   const query = urlSplits[1] || "";
   const ext = uri.split(".").pop();
 
-  if (url.indexOf("/dd-sandbox/") !== -1) {
-    return false;
-  }
-  if (url.indexOf("/babel-tools/") !== -1) {
+  if (url.indexOf("dd-code_dd-sandbox") !== -1) {
     return false;
   }
   if (url.indexOf("virtual:@dd-code/dd-sandbox") !== -1) {
