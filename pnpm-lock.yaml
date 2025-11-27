@@ -29,6 +29,9 @@ importers:
       es-module-lexer:
         specifier: ^1.6.0
         version: 1.7.0
+      jest:
+        specifier: ^30.2.0
+        version: 30.2.0(@types/node@18.19.127)
       rimraf:
         specifier: ^3.0.2
         version: 3.0.2
@@ -95,9 +98,6 @@ importers:
       '@dd-code/babel-tools':
         specifier: workspace:*
         version: link:../babel-tools
-      '@dd-code/shared':
-        specifier: workspace:*
-        version: link:../shared
       '@rollup/pluginutils':
         specifier: ^5.3.0
         version: 5.3.0(rollup@4.52.2)
@@ -233,6 +233,9 @@ importers:
       '@rollup/plugin-typescript':
         specifier: ^12.1.4
         version: 12.1.4(rollup@4.52.2)(tslib@2.8.1)(typescript@4.9.5)
+      '@types/babel__generator':
+        specifier: ^7.27.0
+        version: 7.27.0
       '@vue/compiler-sfc':
         specifier: ^3.5.22
         version: 3.5.22
