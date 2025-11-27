@@ -1,5 +1,5 @@
 {
-  "name": "@dd-code/shared",
+  "name": "@chagee/chain-shared",
   "version": "1.0.5",
   "description": "Shared utilities and common code",
   "main": "./dist/index.js",

@@ -1,4 +1,4 @@
-import { program } from "@dd-code/shared";
+import { program } from "@chagee/chain-shared";
 
 program
   .command("optional [file]")

@@ -4,7 +4,7 @@ import commonjs from "@rollup/plugin-commonjs";
 import dts from "rollup-plugin-dts";
 import terser from "@rollup/plugin-terser";
 
-const external = ["vite", "@dd-code/shared"];
+const external = ["vite", "@chagee/chain-shared"];
 
 export default [
   // 主构建配置

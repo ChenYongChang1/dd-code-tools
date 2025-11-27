@@ -1,5 +1,5 @@
 import path from "path";
-import { getViteConfigFilePath } from "@dd-code/shared";
+import { getViteConfigFilePath } from "@chagee/chain-shared";
 import {
   applyCopy,
   excuteCopy,

@@ -1,6 +1,6 @@
 // @ts-ignore
 import path from "path";
-import { parse, traverse } from "@dd-code/babel-tools";
+import { parse, traverse } from "@chagee/babel-tools";
 // import { TransformResult, build, resolveConfig } from "vite";
 import fs from "fs";
 import { execSync } from "child_process";

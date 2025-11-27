@@ -11,7 +11,7 @@ export { transformCode } from './optional/index'
 export const getImportFileDeepPlugin = (fileArr = [], recursive = true) => {
   const root = process.cwd();
   return {
-    name: "dd-code:vite-findImportFile",
+    name: "chagee:vite-findImportFile",
     apply: "build",
     generateBundle(options, bundles) {
       // import("./find/index").then(({ excuteGetFileDep }) => {

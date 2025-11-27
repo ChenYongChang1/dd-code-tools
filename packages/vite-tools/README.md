@@ -1,4 +1,4 @@
-# @dd-code/vite-tools
+# @chagee/vite-tools
 
 一个专为 Vite 项目设计的强大工具集，提供代码转换、依赖分析、文件管理等功能。
 
@@ -14,13 +14,13 @@
 
 ```bash
 # 使用 npm
-npm install @dd-code/vite-tools
+npm install @chagee/vite-tools
 
 # 使用 yarn
-yarn add @dd-code/vite-tools
+yarn add @chagee/vite-tools
 
 # 使用 pnpm
-pnpm add @dd-code/vite-tools
+pnpm add @chagee/vite-tools
 ```
 
 ## 🛠️ 使用方法
@@ -31,10 +31,10 @@ pnpm add @dd-code/vite-tools
 
 ```bash
 # 使用 npx（推荐）
-npx @dd-code/vite-tools [command] [options]
+npx @chagee/vite-tools [command] [options]
 
 # 全局安装后直接使用
-@dd-code/vite-tools [command] [options]
+@chagee/vite-tools [command] [options]
 ```
 
 ### 可用命令
@@ -45,13 +45,13 @@ npx @dd-code/vite-tools [command] [options]
 
 ```bash
 # 转换指定文件
-npx @dd-code/vite-tools optional src/index.ts
+npx @chagee/vite-tools optional src/index.ts
 
 # 转换多个文件（逗号分隔）
-npx @dd-code/vite-tools optional src/index.ts,src/utils.ts
+npx @chagee/vite-tools optional src/index.ts,src/utils.ts
 
 # 转换整个目录
-npx @dd-code/vite-tools optional src/
+npx @chagee/vite-tools optional src/
 ```
 
 **转换示例：**
@@ -73,10 +73,10 @@ obj?.count?.value?.toString() && ++obj.count.value;
 
 ```bash
 # 使用默认 vite 配置
-npx @dd-code/vite-tools delete
+npx @chagee/vite-tools delete
 
 # 指定 vite 配置文件
-npx @dd-code/vite-tools delete --config vite.config.ts
+npx @chagee/vite-tools delete --config vite.config.ts
 ```
 
 #### 3. `find` - 查找文件依赖
@@ -85,10 +85,10 @@ npx @dd-code/vite-tools delete --config vite.config.ts
 
 ```bash
 # 查找文件依赖
-npx @dd-code/vite-tools find --fileName src/index.ts
+npx @chagee/vite-tools find --fileName src/index.ts
 
 # 指定配置文件
-npx @dd-code/vite-tools find --fileName src/index.ts --config vite.config.ts
+npx @chagee/vite-tools find --fileName src/index.ts --config vite.config.ts
 ```
 
 #### 4. `copy` - 复制依赖文件
@@ -97,7 +97,7 @@ npx @dd-code/vite-tools find --fileName src/index.ts --config vite.config.ts
 
 ```bash
 # 复制到目标目录
-npx @dd-code/vite-tools copy ./backup
+npx @chagee/vite-tools copy ./backup
 ```
 
 #### 5. `apply` - 应用复制的文件
@@ -105,7 +105,7 @@ npx @dd-code/vite-tools copy ./backup
 将之前复制的文件应用回源文件。
 
 ```bash
-npx @dd-code/vite-tools apply
+npx @chagee/vite-tools apply
 ```
 
 ### Vite 插件
@@ -117,7 +117,7 @@ npx @dd-code/vite-tools apply
 ```javascript
 // vite.config.js
 import { defineConfig } from 'vite';
-import { FixOptionalPlugin } from '@dd-code/vite-tools/plugins';
+import { FixOptionalPlugin } from '@chagee/vite-tools/plugins';
 
 export default defineConfig({
   plugins: [
@@ -132,7 +132,7 @@ export default defineConfig({
 #### 代码转换 API
 
 ```javascript
-import { transformCode, OptionalChainTransformer } from '@dd-code/vite-tools';
+import { transformCode, OptionalChainTransformer } from '@chagee/vite-tools';
 
 // 使用默认转换器
 const result = transformCode('const value = obj.a.b.c;');
@@ -152,7 +152,7 @@ import {
   excuteFindDep,
   excuteCopyFiles,
   excuteCopyApply
-} from '@dd-code/vite-tools';
+} from '@chagee/vite-tools';
 
 // 删除未使用的文件
 await excuteDelete({ config: 'vite.config.ts' });
@@ -187,7 +187,7 @@ const whitelist = [
 你可以通过创建自定义转换器实例来修改白名单：
 
 ```javascript
-import { OptionalChainTransformer } from '@dd-code/vite-tools';
+import { OptionalChainTransformer } from '@chagee/vite-tools';
 
 const transformer = new OptionalChainTransformer();
 transformer.whitelist.push('myGlobalObject');
@@ -220,7 +220,7 @@ src/
 
 1. **AST 解析**: 使用 `@babel/parser` 将代码解析为抽象语法树
 2. **节点遍历**: 使用 `@babel/traverse` 遍历 AST 节点
-3. **转换规则**: 
+3. **转换规则**:
    - 成员表达式 → 可选链成员表达式
    - 赋值表达式 → 条件赋值表达式
    - 自增自减 → 安全自增自减
@@ -289,16 +289,16 @@ function UserProfile({ user }) {
 
 ```bash
 # 1. 分析项目依赖，找出未使用的文件
-npx @dd-code/vite-tools find --fileName src/main.ts --config vite.config.ts
+npx @chagee/vite-tools find --fileName src/main.ts --config vite.config.ts
 
 # 2. 备份重要文件到安全位置
-npx @dd-code/vite-tools copy ./backup/$(date +%Y%m%d)
+npx @chagee/vite-tools copy ./backup/$(date +%Y%m%d)
 
 # 3. 删除未使用的文件（谨慎操作）
-npx @dd-code/vite-tools delete --config vite.config.ts
+npx @chagee/vite-tools delete --config vite.config.ts
 
 # 4. 如果需要恢复，应用备份文件
-npx @dd-code/vite-tools apply
+npx @chagee/vite-tools apply
 ```
 
 ## ❓ 常见问题
@@ -352,13 +352,13 @@ A: 推荐的 CI/CD 集成方式：
   run: npm ci
 
 - name: Transform code with optional chains
-  run: npx @dd-code/vite-tools optional src/
+  run: npx @chagee/vite-tools optional src/
 
 - name: Build project
   run: npm run build
 
 - name: Clean unused files
-  run: npx @dd-code/vite-tools delete --config vite.config.ts
+  run: npx @chagee/vite-tools delete --config vite.config.ts
 ```
 
 ### Q: 工具是否支持 Monorepo？
@@ -386,7 +386,7 @@ A: 常见解决方案：
 ### 自定义 Babel 配置
 
 ```javascript
-import { OptionalChainTransformer } from '@dd-code/vite-tools';
+import { OptionalChainTransformer } from '@chagee/vite-tools';
 
 const transformer = new OptionalChainTransformer();
 
@@ -427,7 +427,7 @@ module.exports = {
 ```bash
 # 克隆仓库
 git clone <repository-url>
-cd dd-code-utils
+cd chagee-utils
 
 # 安装依赖
 pnpm install
@@ -461,7 +461,7 @@ ISC License
 
 - [Vite 官方文档](https://vitejs.dev/)
 - [Babel 官方文档](https://babeljs.io/)
-- [@dd-code/shared](../shared) - 共享工具库
+- [@chagee/chain-shared](../shared) - 共享工具库
 - [可选链操作符 MDN 文档](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/Optional_chaining)
 
 ---

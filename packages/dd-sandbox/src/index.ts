@@ -28,7 +28,7 @@ export default (options: SandboxOptions): Plugin[] => {
   const appCode = options.appCode || "app";
   const filter = createFilter(
     options.include || [],
-    options.exclude || [/.*\/dd-sandbox\/.*/, "*virtual:@dd-code/dd-sandbox*"]
+    options.exclude || [/.*\/dd-sandbox\/.*/, "*virtual:@chagee/dd-sandbox*"]
   );
   // vue :deep postcss 处理插件
   const sandboxOptions = options.sandboxOptions || {};
@@ -42,7 +42,7 @@ export default (options: SandboxOptions): Plugin[] => {
   ];
   return [
     {
-      name: "dd-code:sandbox-css",
+      name: "chagee:sandbox-css",
       async transform(code, id) {
         const isFilterCss = filter(id);
         const out = await transformCss(
@@ -58,7 +58,7 @@ export default (options: SandboxOptions): Plugin[] => {
       },
     },
     {
-      name: "dd-code:sandbox-js",
+      name: "chagee:sandbox-js",
       enforce: "post",
       resolveId(id) {
         return viteResolveIdPlugin(id);

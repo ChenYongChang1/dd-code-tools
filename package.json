@@ -1,5 +1,5 @@
 {
-  "name": "@dd-code/tools",
+  "name": "@chagee/tools",
   "version": "0.0.2",
   "description": "A monorepo for code utilities",
   "workspaces": [

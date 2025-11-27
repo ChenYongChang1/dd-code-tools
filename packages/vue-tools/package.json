@@ -1,5 +1,5 @@
 {
-  "name": "@dd-code/vue-tools",
+  "name": "@chagee/vue-tools",
   "version": "0.0.1",
   "description": "vue-specific tools and utilities",
   "main": "./dist/index.js",
@@ -9,7 +9,7 @@
     "dist"
   ],
   "bin": {
-    "@dd-code/vue-tools": "dist/index.js"
+    "@chagee/vue-tools": "dist/index.js"
   },
   "exports": {
     ".": {
@@ -38,8 +38,8 @@
     "@babel/parser": "^7.28.4",
     "@babel/traverse": "^7.28.4",
     "@babel/preset-typescript": "^7.27.1",
-    "@dd-code/shared": "workspace:*",
-    "@dd-code/vite-tools": "workspace:*"
+    "@chagee/chain-shared": "workspace:*",
+    "@chagee/vite-tools": "workspace:*"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.6",

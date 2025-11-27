@@ -1,11 +1,11 @@
-import { parse, generate, traverse } from "@dd-code/babel-tools";
+import { parse, generate, traverse } from "@chagee/babel-tools";
 /**
  * 判断是否是sandbox dist文件
  * @param {*} url
  * @returns
  */
 export function checkSandBoxDistFile(url: string) {
-  if (["dd-code_dd-sandbox_shared"].some((item) => url.indexOf(item) !== -1)) {
+  if (["chagee_dd-sandbox_shared"].some((item) => url.indexOf(item) !== -1)) {
     return true;
   }
 }
@@ -54,10 +54,10 @@ export function checkTransformScope(url: string) {
   const query = urlSplits[1] || "";
   const ext = uri.split(".").pop();
 
-  if (url.indexOf("dd-code_dd-sandbox") !== -1) {
+  if (url.indexOf("chagee_dd-sandbox") !== -1) {
     return false;
   }
-  if (url.indexOf("virtual:@dd-code/dd-sandbox") !== -1) {
+  if (url.indexOf("virtual:@chagee/dd-sandbox") !== -1) {
     return false;
   }
   if (checkSandBoxDistFile(url)) {
@@ -77,7 +77,7 @@ export function checkTransformScope(url: string) {
 
 export const importProxyWindow = (proxyWinVarName: string) => {
   return `
-  import ${proxyWinVarName} from 'virtual:@dd-code/dd-sandbox/shared';
+  import ${proxyWinVarName} from 'virtual:@chagee/dd-sandbox/shared';
   `;
 };
 

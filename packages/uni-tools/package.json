@@ -1,5 +1,5 @@
 {
-  "name": "@dd-code/uni",
+  "name": "@chagee/uni",
   "version": "1.0.0",
   "description": "Universal tools for code utilities",
   "main": "./dist/index.js",
@@ -14,7 +14,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@dd-code/shared": "workspace:*"
+    "@chagee/chain-shared": "workspace:*"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.6",

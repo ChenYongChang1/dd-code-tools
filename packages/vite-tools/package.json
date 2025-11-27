@@ -1,6 +1,6 @@
 {
-  "name": "@dd-code/vite-tools",
-  "version": "1.1.2",
+  "name": "@chagee/vite-tools",
+  "version": "1.1.1",
   "description": "Vite-specific tools and utilities",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -15,7 +15,7 @@
     "CHNAGELOG.md"
   ],
   "bin": {
-    "@dd-code/vite-tools": "dist/index.js"
+    "@chagee/vite-tools": "dist/index.js"
   },
   "exports": {
     ".": {
@@ -41,14 +41,14 @@
     "jest": "jest"
   },
   "dependencies": {
-    "@dd-code/babel-tools": "workspace:*",
-    "@dd-code/shared": "workspace:*",
+    "@chagee/babel-tools": "workspace:*",
+    "@chagee/chain-shared": "workspace:*",
     "cli-progress": "^3.12.0"
   },
   "publishConfig": {
     "dependencies": {
-      "@dd-code/shared": "latest",
-      "@dd-code/babel-tools": "latest"
+      "@chagee/chain-shared": "latest",
+      "@chagee/babel-tools": "latest"
     }
   },
   "devDependencies": {

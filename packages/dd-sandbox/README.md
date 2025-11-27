@@ -47,7 +47,7 @@
 
     ```ts
     import { defineConfig } from 'vite';
-    import ddSandbox from '@dd-code/dd-sandbox';
+    import ddSandbox from '@chagee/dd-sandbox';
 
     export default defineConfig({
       plugins: ddSandbox({

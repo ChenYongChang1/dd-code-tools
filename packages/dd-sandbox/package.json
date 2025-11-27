@@ -1,5 +1,5 @@
 {
-  "name": "@dd-code/dd-sandbox",
+  "name": "@chagee/dd-sandbox",
   "version": "1.0.5",
   "main": "./dist/index.mjs.js",
   "types": "./dist/index.d.ts",
@@ -44,7 +44,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@dd-code/babel-tools": "workspace:*",
+    "@chagee/babel-tools": "workspace:*",
     "@rollup/pluginutils": "^5.3.0",
     "import-html-entry": "^1.17.0",
     "postcss": "^8.5.6",
@@ -52,7 +52,7 @@
   },
   "publishConfig": {
     "dependencies": {
-      "@dd-code/babel-tools": "latest"
+      "@chagee/babel-tools": "latest"
     }
   }
 }

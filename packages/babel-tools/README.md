@@ -1,4 +1,4 @@
-# @dd-code/babel-plugin-i18n
+# @chagee/babel-plugin-i18n
 
 一个用于提取与替换中文文本的 Babel 插件：扫描代码中的中文字符串，生成稳定的 i18n key，并可选择替换为 `t('key')` 调用，同时将原文写入 `locales/<locale>.json`。
 
@@ -12,7 +12,7 @@
 ## 安装
 
 ```bash
-pnpm add @dd-code/babel-plugin-i18n -D
+pnpm add @chagee/babel-plugin-i18n -D
 # 需要 @babel/core 作为 peer
 pnpm add @babel/core -D
 ```
@@ -24,7 +24,7 @@ pnpm add @babel/core -D
 module.exports = {
   plugins: [
     [
-      '@dd-code/babel-plugin-i18n',
+      '@chagee/babel-plugin-i18n',
       {
         localesDir: './locales',
         locale: 'zh-CN',

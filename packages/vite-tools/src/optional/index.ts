@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 import cliProgress from "cli-progress";
-import { readDirSync } from "@dd-code/shared";
+import { readDirSync } from "@chagee/chain-shared";
 import { transformCode } from "./server";
 
 export const getPathFiles = (pathName: string): string[] => {
