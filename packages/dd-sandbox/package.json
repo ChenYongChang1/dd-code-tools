@@ -1,6 +1,6 @@
 {
   "name": "@dd-code/dd-sandbox",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "./dist/index.mjs.js",
   "types": "./dist/index.d.ts",
   "scripts": {
@@ -20,6 +20,10 @@
       "require": "./dist/shared.cjs.js"
     }
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "devDependencies": {
     "@babel/generator": "^7.28.3",
     "@babel/types": "^7.28.4",
