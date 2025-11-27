@@ -18,6 +18,7 @@ export function transformJs(
   const isScoped = checkTransformScope(id);
   let next = code;
   if (checkSandBoxDistFile(id)) {
+    // 使用的项目 vite打包的时候会给这个模块新加一个引用 导致循环引用 所以这里需要特殊处理 给引用去掉
     next = astTranformSandBoxDistFile(next);
   }
   if (!isFilter || !isScoped || id === next) {
