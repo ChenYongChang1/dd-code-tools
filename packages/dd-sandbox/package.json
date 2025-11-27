@@ -1,6 +1,6 @@
 {
   "name": "@dd-code/dd-sandbox",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "main": "./dist/index.mjs.js",
   "types": "./dist/index.d.ts",
   "scripts": {
