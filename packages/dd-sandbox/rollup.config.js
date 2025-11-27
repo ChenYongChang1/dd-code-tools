@@ -46,20 +46,14 @@ export default [
     input: "src/shared.ts",
     output: [
       {
-        dir: "dist",
-        // file: "dist/shared.cjs.js",
-        minifyInternalExports: true,
-        preserveEntrySignatures: "strict", // 关键配置
-        chunkFileNames: `[name].cjs.js`,
+        file: "dist/shared.cjs.js",
         format: "cjs",
+        minifyInternalExports: true,
       },
       {
-        dir: "dist",
-        // file: "dist/shared.mjs.js",
-        minifyInternalExports: true,
-        preserveEntrySignatures: "strict", // 关键配置
-        chunkFileNames: `[name].mjs.js`,
+        file: "dist/shared.mjs.js",
         format: "es",
+        minifyInternalExports: true,
       },
     ],
     external,
