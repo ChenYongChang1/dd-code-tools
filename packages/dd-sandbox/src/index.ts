@@ -1,9 +1,16 @@
 import { Plugin, TransformResult } from "vite";
 import { createFilter } from "@rollup/pluginutils";
 import { postCssPlugin } from "./css";
-import { astTranform, importProxyWindow } from "./js/utils";
+import {
+  astTranform,
+  astTranformSandBoxDistFile,
+  checkSandBoxDistFile,
+  checkTransformScope,
+  importProxyWindow,
+} from "./plugins/index";
 import { proxyWinVarName } from "./js/config";
 import { viteLoadPlugin, viteResolveIdPlugin } from "./js";
+import { transformJs, transformCss } from "./core/transform";
 
 interface SandboxOptions {
   sandboxOptions: {};
@@ -19,7 +26,10 @@ interface SandboxOptions {
 
 export default (options: SandboxOptions): Plugin[] => {
   const appCode = options.appCode || "app";
-  const filter = createFilter(options.include || [], options.exclude || []);
+  const filter = createFilter(
+    options.include || [],
+    options.exclude || [/.*\/dd-sandbox\/.*/, "*virtual:@dd-code/dd-sandbox*"]
+  );
   // vue :deep postcss 处理插件
   const sandboxOptions = options.sandboxOptions || {};
   const postcssOptions = options.postcssOptions;
@@ -30,22 +40,21 @@ export default (options: SandboxOptions): Plugin[] => {
     "body",
     "[data-vxe-ui-theme=",
   ];
-  // const sandboxOptions = options.sandboxOptions || {};
-  const defaultPerfix = `.${appCode}`;
-  const perfixOpt =
-    (typeof options.perfix === "function"
-      ? options.perfix(defaultPerfix)
-      : options.perfix) || `:where(${defaultPerfix})`;
   return [
     {
       name: "dd-code:sandbox-css",
       async transform(code, id) {
         const isFilterCss = filter(id);
-        const isCssFile = /(s|l)?css/.test(id);
-        if (!isFilterCss || !isCssFile) {
-          return undefined;
-        }
-        return await postCssPlugin(perfixOpt, code, { include, exclude });
+        const out = await transformCss(
+          code,
+          id,
+          isFilterCss,
+          appCode,
+          options.perfix,
+          include,
+          exclude
+        );
+        return out;
       },
     },
     {
@@ -59,19 +68,19 @@ export default (options: SandboxOptions): Plugin[] => {
       },
       async transform(code, id) {
         const isFilter = await filter(id);
-        if (!isFilter) {
-          return undefined;
-        }
         try {
-          const replaceCode = astTranform(code, proxyWinVarName);
-          return {
-            code: `${importProxyWindow(proxyWinVarName)}${replaceCode}`,
-            map: null,
-          };
+          const out = transformJs(
+            code,
+            id,
+            isFilter,
+            appCode,
+            sandboxOptions
+          );
+          return { code: out, map: null };
         } catch (err) {
           console.error("vite-plugin-sandbox transform error: ", id, err);
+          return { code, map: null };
         }
-        return { code, map: null };
       },
     },
   ];

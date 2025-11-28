@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "noImplicitAny": false,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -8,7 +9,11 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "lib": [
+      "ES2015",
+      "DOM"
+    ]
   },
   "include": [
     "src/**/*"

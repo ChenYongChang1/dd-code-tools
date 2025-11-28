@@ -3,12 +3,9 @@ export const viteLoadPlugin = (
   sandboxOptions: any,
   id: string
 ) => {
-  if (
-    id.indexOf("@dd-code/sandbox") !== -1 &&
-    id.indexOf("virtual=true") !== -1
-  ) {
+  if (id.indexOf("virtual:@dd-code/dd-sandbox/shared") !== -1) {
     const res = `
-            import { getProxyWin } from '@dd-code/sandbox/shared';
+            import { getProxyWin } from "@dd-code/dd-sandbox/shared";
             const proxyWin = getProxyWin('${appCode}', ${JSON.stringify(
       sandboxOptions
     )});
@@ -19,10 +16,7 @@ export const viteLoadPlugin = (
 };
 
 export const viteResolveIdPlugin = (id: string) => {
-  if (
-    id.indexOf("@dd-code/sandbox") !== -1 &&
-    id.indexOf("virtual=true") !== -1
-  ) {
+  if (id.indexOf("virtual:@dd-code/dd-sandbox/shared") !== -1) {
     return id;
   }
   return null;

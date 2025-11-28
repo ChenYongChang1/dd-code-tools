@@ -345,7 +345,7 @@ class OptionalVueTransformer extends OptionalChainTransformer {
         case "tag":
           // console.log(node.name, node.attribs);
 
-          // this.handlerTagCode(node);
+          this.handlerTagCode(node);
           break;
         case "text":
           this.handlerTextCode(node);

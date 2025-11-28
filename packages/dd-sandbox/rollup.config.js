@@ -7,18 +7,18 @@ import dts from "rollup-plugin-dts";
 
 // 检查是否为开发模式（用于 link 调试）
 // 条件性 external - 开发模式下不 external，生产模式下 external
-const external = ["vite"];
+const external = ["vite", "@dd-code/babel-tools"];
 
 export default [
   {
     input: "src/index.ts",
     output: [
       {
-        file: "dist/index.js",
+        file: "dist/index.cjs.js",
         format: "cjs",
       },
       {
-        file: "dist/index.mjs",
+        file: "dist/index.mjs.js",
         format: "es",
       },
     ],
@@ -46,12 +46,14 @@ export default [
     input: "src/shared.ts",
     output: [
       {
-        file: "dist/shared.js",
+        file: "dist/shared.cjs.js",
         format: "cjs",
+        minifyInternalExports: true,
       },
       {
-        file: "dist/shared.mjs",
+        file: "dist/shared.mjs.js",
         format: "es",
+        minifyInternalExports: true,
       },
     ],
     external,

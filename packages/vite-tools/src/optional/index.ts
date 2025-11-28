@@ -30,7 +30,7 @@ export const transfromCodeByDirFile = (filterFileNames: string[]) => {
   // 初始化进度条
   bar.start(len, 0);
   // console.log({ filterFileNames }, "-----");
-
+  const notSuccessFiles: string[] = [];
   filterFileNames.forEach((fileName, index) => {
     const extname = path.extname(fileName)?.replace(".", "");
     // console.log(`start transform -------- ${index}/${len}`);
@@ -39,7 +39,8 @@ export const transfromCodeByDirFile = (filterFileNames: string[]) => {
     const content = fs.readFileSync(fileName, "utf-8");
     const transformContent = transformCode(content, extname, fileName);
     if (transformContent === content) {
-      throw Error(`transformContent === content, fileName: ${fileName}`);
+      // throw Error(`transformContent === content, fileName: ${fileName}`);
+      notSuccessFiles.push(fileName);
     }
     if (transformContent) {
       fs.writeFileSync(fileName, transformContent, "utf-8");
@@ -47,6 +48,9 @@ export const transfromCodeByDirFile = (filterFileNames: string[]) => {
     // console.log(`end transform -------- ${index}/${len}`);
   });
   bar.stop();
+  if (notSuccessFiles.length) {
+    console.log(`notSuccessFiles:\n ${notSuccessFiles.join("\n")}`);
+  }
   return len;
 };
 

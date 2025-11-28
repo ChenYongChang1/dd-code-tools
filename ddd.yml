@@ -1,0 +1,8 @@
+case_sensitive: false
+block_urls:
+- /api/
+blocked_code: 200
+blocked_headers:
+    - key: Content-Type
+      value: application/json;charset=utf-8
+blocked_message: "{\"code\": \"2001\"}"

@@ -29,6 +29,9 @@ importers:
       es-module-lexer:
         specifier: ^1.6.0
         version: 1.7.0
+      jest:
+        specifier: ^30.2.0
+        version: 30.2.0(@types/node@18.19.127)
       rimraf:
         specifier: ^3.0.2
         version: 3.0.2
@@ -90,26 +93,17 @@ importers:
         specifier: ^5.4.5
         version: 5.9.2
 
-  packages/sandbox:
+  packages/dd-sandbox:
     dependencies:
-      '@babel/generator':
-        specifier: ^7.28.3
-        version: 7.28.3
-      '@babel/parser':
-        specifier: ^7.28.4
-        version: 7.28.4
-      '@babel/traverse':
-        specifier: ^7.28.4
-        version: 7.28.4
       '@dd-code/babel-tools':
         specifier: workspace:*
         version: link:../babel-tools
-      '@dd-code/shared':
-        specifier: workspace:*
-        version: link:../shared
       '@rollup/pluginutils':
         specifier: ^5.3.0
         version: 5.3.0(rollup@4.52.2)
+      import-html-entry:
+        specifier: ^1.17.0
+        version: 1.17.0
       postcss:
         specifier: ^8.5.6
         version: 8.5.6
@@ -117,6 +111,12 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1(postcss@8.5.6)
     devDependencies:
+      '@babel/generator':
+        specifier: ^7.28.3
+        version: 7.28.3
+      '@babel/types':
+        specifier: ^7.28.4
+        version: 7.28.4
       '@rollup/plugin-commonjs':
         specifier: ^28.0.6
         version: 28.0.6(rollup@4.52.2)
@@ -233,6 +233,9 @@ importers:
       '@rollup/plugin-typescript':
         specifier: ^12.1.4
         version: 12.1.4(rollup@4.52.2)(tslib@2.8.1)(typescript@4.9.5)
+      '@types/babel__generator':
+        specifier: ^7.27.0
+        version: 7.27.0
       '@vue/compiler-sfc':
         specifier: ^3.5.22
         version: 3.5.22
@@ -507,6 +510,10 @@ packages:
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': ^7.0.0-0
+
+  '@babel/runtime@7.28.4':
+    resolution: {integrity: sha512-Q/N6JNWvIvPnLDvjlE1OUBLPQHH6l3CltCEsHIujp45zQUSSh8K+gHnaEX45yAT1nyngnINhvWtzN+Nb9D8RAQ==}
+    engines: {node: '>=6.9.0'}
 
   '@babel/template@7.27.2':
     resolution: {integrity: sha512-LPDZ85aEJyYSd18/DkjNh4/y1ntkE5KwUHWTiqgRxruuZL2F1yuHligVHLvcHY2vMHXttKFpJn6LwfI7cw7ODw==}
@@ -1547,6 +1554,9 @@ packages:
     resolution: {integrity: sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==}
     engines: {node: '>= 4'}
 
+  import-html-entry@1.17.0:
+    resolution: {integrity: sha512-2SDsRlGlE8bqdnGqsOyiDPEWlzJR0jNW4LWopnZl5QE1Yd0nJ7fykWo2GaKUF7Jq7pR0g3dElhuJHyamTt1gPQ==}
+
   import-local@3.2.0:
     resolution: {integrity: sha512-2SPlun1JUPWoM6t3F0dw0FkCF/jWY8kttcY4f599GLTSjh2OCuuhdTkJQsEcZzBqbXZGKMK2OqW1oZsjtf/gQA==}
     engines: {node: '>=8'}
@@ -2487,6 +2497,8 @@ snapshots:
       '@babel/plugin-transform-typescript': 7.28.0(@babel/core@7.28.4)
     transitivePeerDependencies:
       - supports-color
+
+  '@babel/runtime@7.28.4': {}
 
   '@babel/template@7.27.2':
     dependencies:
@@ -3537,6 +3549,10 @@ snapshots:
   human-signals@2.1.0: {}
 
   ignore@5.3.2: {}
+
+  import-html-entry@1.17.0:
+    dependencies:
+      '@babel/runtime': 7.28.4
 
   import-local@3.2.0:
     dependencies:
