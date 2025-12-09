@@ -98,9 +98,6 @@ importers:
       '@chagee/babel-tools':
         specifier: workspace:*
         version: link:../babel-tools
-      '@chagee/chain-shared':
-        specifier: workspace:*
-        version: link:../shared
       '@rollup/pluginutils':
         specifier: ^5.3.0
         version: 5.3.0(rollup@4.52.2)
