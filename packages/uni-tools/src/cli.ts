@@ -1,0 +1,36 @@
+import { program } from "@chagee/chain-shared";
+import { getMfeJson } from "./config/config";
+import { excuteUniCommand } from "./commond";
+
+const addUniOptions = (program) => {
+  return program
+    .option("-p <platform>", "平台", "h5")
+    .option("--mode <mode>", "模式", "development");
+};
+
+const dev = program
+  .name("uni-tools")
+  .command("serve")
+  .description("uni 工具方法");
+const build = program.command("build").description("构建 uni 项目");
+
+addUniOptions(dev).action(({ mode, p: platform }) => {
+  const mfeJson = getMfeJson();
+  switch (platform) {
+    case "h5":
+      break;
+    case "mp-weixin":
+      excuteUniCommand(`uni -p ${platform} --mode ${mode}`, mfeJson);
+      break;
+    default:
+      break;
+  }
+  // debugger;
+  // console.log(JSON.stringify({ mode, platform, mfeJson }), "-111-------------");
+});
+
+addUniOptions(build).action((opt) => {
+  console.log(opt, "build -------3-------");
+});
+
+program.parseAsync(process.argv);
