@@ -1,12 +1,14 @@
 import {
   BASE_APP_CODE_LIST,
+  formatCliCommandConfig,
   getMfeJson,
   SAVE_CDN_FILE_PATH,
 } from "@/config/config";
 import uniCdn from "@/cdn";
 import { fetchFileByPath, writeFiles } from "@/utils/utils";
-
+import CliProgressManager from "@/utils/progress";
 import path from "path";
+import { IManifestJson } from "@/config/types";
 
 export const getDownloadedFilePath = (conf) => {
   return path.resolve(SAVE_CDN_FILE_PATH, conf.env, conf.appCode);
@@ -28,22 +30,23 @@ export const getNodeModulesEnvAppCodeFilePath = (conf, fileName) => {
  * const urls = getManifestJsonUrl('prod');
  * // 返回: [{ url: '...', appCode: 'main', code: 'my-project' }]
  */
-export const getManifestJsonUrl = (mode = "dev") => {
+export const getManifestJsonUrl = (mode: string) => {
+  const { isRoot = false, code = "mfe-uni" } = formatCliCommandConfig(mode);
   let apps: string[] = [];
-  let code = "";
+  // const { mode, code = "mfe-uni" } = manifestJson;
   try {
     const JSON = getMfeJson();
-    const configApps = JSON.isRoot ? JSON.apps : [];
+    const configApps = isRoot ? JSON.apps : [];
     apps = Array.from(
       new Set([
         ...(configApps || []).map((i) => i.appCode),
         ...BASE_APP_CODE_LIST,
       ])
     );
-    code = JSON.code || "";
+    // code = JSON.code || "";
   } catch (e) {
     apps = BASE_APP_CODE_LIST;
-    code = "mfe-uni";
+    // code = "mfe-uni";
   }
 
   return apps.map((appCode) => {
@@ -90,7 +93,7 @@ export const downloadManifestJson = async (urls: string[]) => {
 export async function downloadFilesByManifestJson(
   manifestJson,
   outDir,
-  onDownload?: (index: number, total: number) => void,
+  onDownload?: (index: number, total: number) => void
 ) {
   const { cdn, appCode, publicPath, files } = manifestJson;
   // files.forEach(async (file) => {
@@ -107,15 +110,26 @@ export async function downloadFilesByManifestJson(
   }
 }
 
-export const downloadProjectFiles = async (manifestList) => {
+export const downloadProjectFiles = async (manifestList: IManifestJson[]) => {
   const downloadList: Promise<void>[] = [];
+  CliProgressManager.initMultiBar();
+  CliProgressManager.createProgressBar(
+    manifestList.map((i) => ({
+      name: i.appCode,
+      total: i.files.length,
+    }))
+  );
   for (const i in manifestList) {
     const manifestJson = manifestList[i];
     const fn = downloadFilesByManifestJson(
       manifestJson,
-      `${SAVE_CDN_FILE_PATH}/${manifestJson.mode}`
+      path.resolve(SAVE_CDN_FILE_PATH, manifestJson.mode || "dev"),
+      (index, total) => {
+        CliProgressManager.updateProgressBar(manifestJson.appCode, index);
+      }
     );
     downloadList.push(fn);
   }
   await Promise.all(downloadList);
+  CliProgressManager.stopAll();
 };

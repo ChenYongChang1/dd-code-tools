@@ -14,11 +14,8 @@ import { createMpWeixinUniPlugin } from "./plugins/mp-weixin";
  * });
  */
 export default (options?: Record<string, any>) => {
-  // 获取微前端配置
-  const mfeJson = getMfeJson();
-  // 合并配置选项，传入的 options 会覆盖默认配置
-  const opt = { ...mfeJson, ...options };
-  return mfeJson.platform === EPlaform.MP_WEIXIN
-    ? createMpWeixinUniPlugin(opt)
+  const { platform } = getMfeJson();
+  return platform === EPlaform.MP_WEIXIN
+    ? createMpWeixinUniPlugin(options)
     : [];
 };

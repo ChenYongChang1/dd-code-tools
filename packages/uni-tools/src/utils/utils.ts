@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import crypto, { BinaryToTextEncoding } from "crypto";
 /**
  * 通过URL获取文件内容
  * 支持JSON和文本文件的自动解析
@@ -63,3 +64,80 @@ export function writeFiles(filaPath, content) {
   }
   return fs.writeFileSync(filaPath, content, "utf-8");
 }
+
+export const loadViteConfig = (mode: string) => {
+  const loadEnv = require("vite").loadEnv;
+  const ROOT = process.cwd();
+  return loadEnv(mode, ROOT, "MFE_");
+};
+
+export const walkDir = (outDir: string, emitted: Set<string>) => {
+  const root = path.isAbsolute(outDir)
+    ? outDir
+    : path.resolve(process.cwd(), outDir);
+  const all: string[] = [];
+  const walk = (dir: string) => {
+    const entries = fs.existsSync(dir) ? fs.readdirSync(dir) : [];
+    entries.forEach((name) => {
+      const p = path.join(dir, name);
+      const stat = fs.statSync(p);
+      if (stat.isDirectory()) walk(p);
+      else all.push(path.relative(root, p));
+    });
+  };
+  walk(root);
+  const merged = Array.from(
+    new Set((Array.from(emitted) as string[]).concat(all))
+  ).sort();
+  return merged;
+};
+
+/**
+ * 根据内容生成hash值
+ * @param {string} content - 要生成hash的内容
+ * @param {string} algorithm - hash算法，默认为'sha256'
+ * @param {string} encoding - 输出编码，默认为'hex'
+ * @returns {string} 生成的hash值
+ */
+function generateHash(
+  content = "",
+  algorithm = "sha256",
+  encoding: BinaryToTextEncoding = "hex"
+) {
+  if (typeof content !== "string") {
+    throw new Error("Content must be a string");
+  }
+
+  const hash = crypto.createHash(algorithm);
+  hash.update(content, "utf8");
+  return hash.digest(encoding);
+}
+
+/**
+ * 根据内容生成MD5 hash值
+ * @param {string} content - 要生成hash的内容
+ * @returns {string} 生成的MD5 hash值
+ */
+function generateMD5(content) {
+  return generateHash(content, "md5");
+}
+
+/**
+ * 根据内容生成SHA1 hash值
+ * @param {string} content - 要生成hash的内容
+ * @returns {string} 生成的SHA1 hash值
+ */
+function generateSHA1(content) {
+  return generateHash(content, "sha1");
+}
+
+/**
+ * 根据内容生成SHA256 hash值
+ * @param {string} content - 要生成hash的内容
+ * @returns {string} 生成的SHA256 hash值
+ */
+function generateSHA256(content) {
+  return generateHash(content, "sha256");
+}
+
+export { generateHash, generateMD5, generateSHA1, generateSHA256 };

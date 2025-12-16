@@ -1,12 +1,12 @@
 import path from "path";
 import { MFE_NAME } from "./const";
 import { EPlaform } from "./enum";
-import { uniReadFile } from "@/utils/utils";
+import { loadViteConfig, uniReadFile } from "@/utils/utils";
 export interface IMfeJson {
-  isRoot: boolean;
-  code: string;
-  mode: string;
-  appCode: string;
+  // isRoot: boolean;
+  // code: string;
+  // mode: string;
+  // appCode: string;
   platform: EPlaform;
   apps: {
     appCode: string;
@@ -25,6 +25,11 @@ export const BASE_PROJECT_FILES = ["project.config.json"];
 export const SAVE_CDN_FILE_PATH = path.join(
   process.cwd(),
   "node_modules/@chagee/uni-files"
+);
+
+export const TEMP_FILE_PATH = path.join(
+  process.cwd(),
+  "node_modules/@chagee/current-files"
 );
 
 // 发布目录路径
@@ -67,24 +72,36 @@ export const getManifestCdnDirUrl = ({
  * const config = getMfeJson();
  * // 返回: { isRoot: true, code: 'myapp', appCode: 'main', ... }
  */
-export const getMfeJson = (mode?: string): IMfeJson => {
+export const getMfeJson = (): IMfeJson => {
   // 读取 mfe.json 配置文件
   const jsonPath = path.resolve(process.cwd(), MFE_NAME);
   const json = uniReadFile(jsonPath) || {};
-  const root = process.cwd();
-  const { loadEnv } = require("vite");
+  // const root = process.cwd();
 
-  const envObj = {
-    ...loadEnv(mode || "development", root, ""),
-    platform: process.env.UNI_PLATFORM || "h5",
-  };
+  // const { loadEnv } = require("vite");
+  // const viteEnv = loadEnv(mode || "dev", root, "");
+  // const envObj = {
+  //   ...viteEnv,
+  //   platform: process.env.UNI_PLATFORM || "h5",
+  // };
+  // console.log("-----", process.env, mode, "viteEnv");
 
-  // 从环境变量中获取配置
-  json.isRoot = envObj.UNI_IS_ROOT;
-  json.code = envObj.UNI_CODE;
-  json.appCode = envObj.MFE_APP_CODE;
-  json.platform = envObj.platform;
-  json.mode = mode || "development";
+  // // 从环境变量中获取配置
+  // json.isRoot = envObj.UNI_IS_ROOT;
+  //     json.code = envObj.UNI_CODE;
+  //     json.appCode = envObj.MFE_APP_CODE;
+  json.platform = process.env.UNI_PLATFORM || "h5";
+  //     json.mode = envObj.MODE || "dev";
 
   return json;
+};
+
+export const formatCliCommandConfig = (mode) => {
+  const viteEnv = loadViteConfig(mode || "dev");
+  return {
+    isRoot: viteEnv.MFE_UNI_IS_ROOT,
+    appCode: viteEnv.MFE_APP_CODE,
+    code: viteEnv.MFE_UNI_CODE,
+    mode,
+  };
 };

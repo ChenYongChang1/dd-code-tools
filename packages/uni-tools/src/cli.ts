@@ -1,5 +1,5 @@
 import { program } from "@chagee/chain-shared";
-import { getMfeJson } from "./config/config";
+import { formatCliCommandConfig } from "./config/config";
 import { excuteUniCommand } from "./commond";
 
 const addUniOptions = (program) => {
@@ -15,12 +15,17 @@ const dev = program
 const build = program.command("build").description("构建 uni 项目");
 
 addUniOptions(dev).action(({ mode, p: platform }) => {
-  const mfeJson = getMfeJson();
+  const { isRoot, appCode } = formatCliCommandConfig(mode);
+  console.log({ isRoot, appCode }, '{ isRoot, appCode }');
+
   switch (platform) {
     case "h5":
       break;
     case "mp-weixin":
-      excuteUniCommand(`uni -p ${platform} --mode ${mode}`, mfeJson);
+      excuteUniCommand(`uni -p ${platform} --mode ${mode}`, {
+        isRoot,
+        appCode,
+      });
       break;
     default:
       break;

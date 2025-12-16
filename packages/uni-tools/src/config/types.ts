@@ -4,6 +4,7 @@ export interface IManifestJson {
   hash: string;
   code: string;
   appCode: string;
+  platform: string;
   publicPath: string;
   pagesJson: {
     pages?: { path: string; style: Record<string, string> }[];
@@ -14,3 +15,11 @@ export interface IManifestJson {
     fileUrl: string;
   }[];
 }
+
+export type TGenreManifestJson = {
+  get value(): IManifestJson;
+  setEnv: (mode: string) => void;
+  setFiles: (files: IManifestJson["files"]) => void;
+  setPagesJson: (pagesJson: IManifestJson["pagesJson"]) => void;
+  saveFile: (baseDir: string) => void;
+};

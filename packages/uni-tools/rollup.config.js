@@ -28,13 +28,13 @@ export default [
         preferBuiltins: true, // 优先使用 Node.js 内置模块
       }),
       commonjs(),
-      terser({
-        compress: {
-          // drop_console: true, // 移除 console 语句
-          // drop_debugger: true, // 移除 debugger 语句
-        },
-        mangle: true, // 混淆变量名
-      }),
+      // terser({
+      //   compress: {
+      //     // drop_console: true, // 移除 console 语句
+      //     drop_debugger: false, // 移除 debugger 语句
+      //   },
+      //   // mangle: true, // 混淆变量名
+      // }),
       typescript({
         tsconfig: "./tsconfig.json",
         declaration: false, // 类型声明文件单独生成
@@ -62,13 +62,13 @@ export default [
         preferBuiltins: true, // 优先使用 Node.js 内置模块
       }),
       commonjs(),
-      terser({
-        compress: {
-          // drop_console: true, // 移除 console 语句
-          // drop_debugger: true, // 移除 debugger 语句
-        },
-        mangle: true, // 混淆变量名
-      }),
+      // terser({
+      //   compress: {
+      //     // drop_console: true, // 移除 console 语句
+      //     drop_debugger: false, // 移除 debugger 语句
+      //   },
+      //   // mangle: true, // 混淆变量名
+      // }),
       typescript({
         tsconfig: "./tsconfig.json",
         declaration: false, // 类型声明文件单独生成
