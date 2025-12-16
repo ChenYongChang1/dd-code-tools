@@ -65,7 +65,7 @@ export const genreMainfestFileListPlugin = (
       const json = getPagesJson(content);
       manifestJson.setPagesJson(json);
     },
-    generateBundle(_outputOptions, bundle) {
+    writeBundle(_outputOptions, bundle) {
       Object.values(bundle).forEach((item: any) => {
         if (item && item.fileName) emitted.add(item.fileName);
       });
