@@ -8,7 +8,9 @@ import {
 } from "@/utils/utils";
 import { getNodeModulesEnvAppCodeFilePath } from "./donwload";
 import {
+  formatCliCommandConfig,
   getManifestCdnDirUrl,
+  getMfeJson,
   IMfeJson,
   MANIFEST_CND_DIR_URL,
   MANIFEST_NAME,
@@ -21,7 +23,7 @@ export const checkDownloadFilesIsExpired = (manifestList: IManifestJson[]) => {
   return manifestList.filter((conf) => {
     const targetPath = getNodeModulesEnvAppCodeFilePath(conf, MANIFEST_NAME);
     const oldJson = uniReadFile(targetPath);
-    return oldJson?.hash !== conf.hash;
+    return !conf.hash || oldJson?.hash !== conf.hash;
   });
 };
 
@@ -64,10 +66,14 @@ export const createManifestManager = (): TGenreManifestJson => {
       writeFiles(filePath, JSON.stringify(row, null, 2));
     },
     setEnv(mode) {
-      const env = loadViteConfig(mode);
+      // const env = loadViteConfig(mode);
+      const env = formatCliCommandConfig(mode);
       row.mode = mode;
-      row.code = env.MFE_UNI_CODE;
-      row.appCode = env.MFE_APP_CODE;
+      row.code = env.code;
+      row.appCode = env.appCode;
+      if (env.isRoot) {
+        row.isRoot = true;
+      }
       row.publicPath = getManifestCdnDirUrl(row);
     },
   };

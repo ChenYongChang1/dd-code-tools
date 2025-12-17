@@ -44,6 +44,8 @@ export const BASE_APP_CODE_LIST = ["login"];
 // 基础页面应用代码列表（会移植到 pages 的 appCode）
 export const BASE_PAGE_APP_CODE = ["login"];
 
+export const ROOT_APP_CODE = "main"; //"__MFE_APP_ROOT__";
+
 // Manifest CDN 目录 URL 模板
 export const MANIFEST_CND_DIR_URL =
   "{mode}/static-repository/mfe-uni/{code}/{appCode}";
@@ -98,9 +100,10 @@ export const getMfeJson = (): IMfeJson => {
 
 export const formatCliCommandConfig = (mode) => {
   const viteEnv = loadViteConfig(mode || "dev");
+  const isRoot = viteEnv.MFE_UNI_IS_ROOT;
   return {
-    isRoot: viteEnv.MFE_UNI_IS_ROOT,
-    appCode: viteEnv.MFE_APP_CODE,
+    isRoot,
+    appCode: isRoot ? ROOT_APP_CODE : viteEnv.MFE_APP_CODE,
     code: viteEnv.MFE_UNI_CODE,
     mode,
   };

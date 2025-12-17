@@ -3,6 +3,7 @@ import { createManifestManager } from "./modules/mp-weixin/manifest-core";
 import { resetOutDir } from "./modules/mp-weixin/output";
 import { createAppsAssetsPlugin } from "./modules/mp-weixin/plugins/assets";
 import { createManifestPlugin } from "./modules/mp-weixin/plugins/manifest-plugin";
+import { createMainAppPlugin } from "./modules/mp-weixin/plugins/main-app";
 
 export const createMpWeixinUniPlugin = (options: Record<string, any> = {}) => {
   const currentManifestJson = createManifestManager();
@@ -17,6 +18,7 @@ export const createMpWeixinUniPlugin = (options: Record<string, any> = {}) => {
     },
     createAppsAssetsPlugin(currentManifestJson),
     createManifestPlugin(currentManifestJson),
+    createMainAppPlugin(currentManifestJson),
   ];
 };
 

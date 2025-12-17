@@ -4,6 +4,7 @@ export interface IManifestJson {
   hash: string;
   code: string;
   appCode: string;
+  isRoot?: boolean;
   platform: string;
   publicPath: string;
   pagesJson: {

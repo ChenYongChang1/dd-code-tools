@@ -2,6 +2,7 @@ import {
   BASE_APP_CODE_LIST,
   formatCliCommandConfig,
   getMfeJson,
+  ROOT_APP_CODE,
   SAVE_CDN_FILE_PATH,
 } from "@/config/config";
 import uniCdn from "@/cdn";
@@ -36,7 +37,7 @@ export const getManifestJsonUrl = (mode: string) => {
   // const { mode, code = "mfe-uni" } = manifestJson;
   try {
     const JSON = getMfeJson();
-    const configApps = isRoot ? JSON.apps : [];
+    const configApps = isRoot ? JSON.apps : [{ appCode: ROOT_APP_CODE }];
     apps = Array.from(
       new Set([
         ...(configApps || []).map((i) => i.appCode),
@@ -49,7 +50,7 @@ export const getManifestJsonUrl = (mode: string) => {
     // code = "mfe-uni";
   }
 
-  return apps.map((appCode) => {
+  const result = apps.map((appCode) => {
     return {
       url: uniCdn.getManifestUrl({
         code,
@@ -60,6 +61,7 @@ export const getManifestJsonUrl = (mode: string) => {
       code,
     };
   });
+  return result;
 };
 
 export const downloadManifestJson = async (urls: string[]) => {
