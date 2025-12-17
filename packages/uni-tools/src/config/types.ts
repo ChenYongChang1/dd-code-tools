@@ -19,7 +19,7 @@ export interface IManifestJson {
 export type TGenreManifestJson = {
   get value(): IManifestJson;
   setEnv: (mode: string) => void;
-  setFiles: (files: IManifestJson["files"]) => void;
+  setFiles: (outDir: string, files: string[]) => void;
   setPagesJson: (pagesJson: IManifestJson["pagesJson"]) => void;
   saveFile: (baseDir: string) => void;
 };

@@ -32,8 +32,6 @@ class CliProgressManager {
       });
       this.barMap.set(task.name, taskBar);
     });
-    console.log(this.barMap, 'this.barMap');
-
   }
   updateProgressBar(name: string, value: number) {
     const taskBar = this.barMap.get(name);

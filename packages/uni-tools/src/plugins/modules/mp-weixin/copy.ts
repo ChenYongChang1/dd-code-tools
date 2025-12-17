@@ -1,4 +1,6 @@
+import fsExtra from "fs-extra";
 import fs from "fs";
+import path from "path";
 
 export const addUniCopyPluginHook = ({ before, after }) => {
   const { FileWatcher } = require("@dcloudio/uni-cli-shared/dist/watcher");
@@ -6,8 +8,6 @@ export const addUniCopyPluginHook = ({ before, after }) => {
 
   // Hook copy方法
   FileWatcher.prototype.copy = function (from) {
-
-
     const to = this.to(from);
     const fromPath = this.from(from);
     const stat = fs.statSync(fromPath);
@@ -37,4 +37,15 @@ export const addUniCopyPluginHook = ({ before, after }) => {
     // }
     return result;
   };
+};
+
+export const copyFilesByTargetPath = (
+  sourcePath: string,
+  targetPath: string
+) => {
+  console.log(sourcePath, targetPath);
+
+  fsExtra.copySync(sourcePath, targetPath, {
+    overwrite: true,
+  });
 };

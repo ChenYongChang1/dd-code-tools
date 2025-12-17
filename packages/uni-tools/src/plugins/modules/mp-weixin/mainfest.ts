@@ -1,3 +1,4 @@
+import fs from "fs";
 import path from "path";
 import {
   generateSHA256,
@@ -46,16 +47,27 @@ export const genreMainfestFile = (): TGenreManifestJson => {
     get value() {
       return row;
     },
-    setFiles(files: IManifestJson["files"]) {
+    setFiles(outDir: string, all: string[]) {
+      const files = all.map((i) => {
+        // console.log(uniReadFile(i), i, "uniReadFile(i)");
+        const filePath = path.resolve(outDir, i);
+        const content = fs.readFileSync(filePath, "utf-8");
+        const contentHash = generateSHA256(content);
+        return {
+          fileName: i,
+          fileUrl: `${contentHash.slice(0, 8)}_${path.basename(i)}`,
+        };
+      });
       row.files = files;
     },
     setPagesJson(pagesJson: IManifestJson["pagesJson"]) {
       row.pagesJson = pagesJson;
     },
     saveFile(baseDir: string) {
-      row.hash = generateSHA256(JSON.stringify(row));
+      const files = row.files.filter((i) => i.fileName !== MANIFEST_NAME);
+      row.hash = generateSHA256(JSON.stringify({ ...row, files }));
       const filePath = path.resolve(TEMP_FILE_PATH, baseDir, MANIFEST_NAME);
-      writeFiles(filePath, JSON.stringify(row));
+      writeFiles(filePath, JSON.stringify(row, null, 2));
     },
     setEnv(mode) {
       const env = loadViteConfig(mode);
