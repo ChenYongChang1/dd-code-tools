@@ -4,7 +4,7 @@ import {
   downloadProjectFiles,
   getManifestJsonUrl,
 } from "./donwload";
-import { checkDownloadFilesIsExpired } from "./mainfest";
+import { checkDownloadFilesIsExpired } from "./manifest-core";
 import { IMfeJson, SAVE_CDN_FILE_PATH } from "@/config/config";
 import { IManifestJson } from "@/config/types";
 import path from "path";
@@ -35,8 +35,6 @@ export const moveOtherApps = ({
 
     try {
       copyFilesByTargetPath(sourcePath, targetPath);
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (error) {}
   });
 };

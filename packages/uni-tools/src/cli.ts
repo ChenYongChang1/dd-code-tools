@@ -16,7 +16,6 @@ const build = program.command("build").description("构建 uni 项目");
 
 addUniOptions(dev).action(({ mode, p: platform }) => {
   const { isRoot, appCode } = formatCliCommandConfig(mode);
-  console.log({ isRoot, appCode }, '{ isRoot, appCode }');
 
   switch (platform) {
     case "h5":
@@ -34,8 +33,6 @@ addUniOptions(dev).action(({ mode, p: platform }) => {
   // console.log(JSON.stringify({ mode, platform, mfeJson }), "-111-------------");
 });
 
-addUniOptions(build).action((opt) => {
-  console.log(opt, "build -------3-------");
-});
+addUniOptions(build).action((opt) => {});
 
 program.parseAsync(process.argv);

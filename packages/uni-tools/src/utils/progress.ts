@@ -45,7 +45,6 @@ class CliProgressManager {
   }
   stopAll() {
     this.multiBar.stop();
-    console.log(chalk.green("\n下载任务执行完成！"));
   }
 }
 

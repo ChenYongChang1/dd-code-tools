@@ -21,17 +21,12 @@ export const checkDownloadFilesIsExpired = (manifestList: IManifestJson[]) => {
   return manifestList.filter((conf) => {
     const targetPath = getNodeModulesEnvAppCodeFilePath(conf, MANIFEST_NAME);
     const oldJson = uniReadFile(targetPath);
-
     return oldJson?.hash !== conf.hash;
   });
 };
 
-export const genreMainfestFile = (): TGenreManifestJson => {
+export const createManifestManager = (): TGenreManifestJson => {
   const envObj = process.env;
-  // // 从环境变量中获取配置
-  // json.isRoot = envObj.UNI_IS_ROOT;
-  // json.code = envObj.UNI_CODE;
-  // json.appCode = envObj.UNI_APP_CODE;
   const row: IManifestJson = {
     code: "",
     mode: "",
@@ -49,7 +44,6 @@ export const genreMainfestFile = (): TGenreManifestJson => {
     },
     setFiles(outDir: string, all: string[]) {
       const files = all.map((i) => {
-        // console.log(uniReadFile(i), i, "uniReadFile(i)");
         const filePath = path.resolve(outDir, i);
         const content = fs.readFileSync(filePath, "utf-8");
         const contentHash = generateSHA256(content);
@@ -63,10 +57,10 @@ export const genreMainfestFile = (): TGenreManifestJson => {
     setPagesJson(pagesJson: IManifestJson["pagesJson"]) {
       row.pagesJson = pagesJson;
     },
-    saveFile(baseDir: string) {
+    saveFile(outDir: string) {
       const files = row.files.filter((i) => i.fileName !== MANIFEST_NAME);
       row.hash = generateSHA256(JSON.stringify({ ...row, files }));
-      const filePath = path.resolve(TEMP_FILE_PATH, baseDir, MANIFEST_NAME);
+      const filePath = path.resolve(outDir, MANIFEST_NAME);
       writeFiles(filePath, JSON.stringify(row, null, 2));
     },
     setEnv(mode) {

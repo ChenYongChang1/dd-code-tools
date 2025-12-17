@@ -43,9 +43,7 @@ export const copyFilesByTargetPath = (
   sourcePath: string,
   targetPath: string
 ) => {
-  console.log(sourcePath, targetPath);
-
-  fsExtra.copySync(sourcePath, targetPath, {
-    overwrite: true,
-  });
+  if (!fs.existsSync(sourcePath)) return;
+  fsExtra.ensureDirSync(targetPath);
+  fsExtra.copySync(sourcePath, targetPath, { overwrite: true });
 };
