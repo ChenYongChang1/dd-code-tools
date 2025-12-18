@@ -23,4 +23,6 @@ export type TGenreManifestJson = {
   setFiles: (outDir: string, files: string[]) => void;
   setPagesJson: (pagesJson: IManifestJson["pagesJson"]) => void;
   saveFile: (baseDir: string) => void;
+  setDependencies: (list: IManifestJson[]) => void;
+  dependencies: IManifestJson[];
 };

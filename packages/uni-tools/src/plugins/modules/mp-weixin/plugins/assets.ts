@@ -14,6 +14,7 @@ export const createAppsAssetsPlugin = (
     enforce: "pre",
     async options() {
       manifestList = await downloadFullApps(manifestJson.value);
+      manifestJson.setDependencies(manifestList);
     },
     buildStart() {
       if (isMoved) return;

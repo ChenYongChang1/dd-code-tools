@@ -2,6 +2,7 @@ import path from "path";
 import { MFE_NAME } from "./const";
 import { EPlaform } from "./enum";
 import { loadViteConfig, uniReadFile } from "@/utils/utils";
+import { IManifestJson } from "./types";
 export interface IMfeJson {
   // isRoot: boolean;
   // code: string;
@@ -107,4 +108,8 @@ export const formatCliCommandConfig = (mode) => {
     code: viteEnv.MFE_UNI_CODE,
     mode,
   };
+};
+
+export const checkIsRootManifest = (manifest: IManifestJson) => {
+  return manifest.isRoot || manifest.appCode === ROOT_APP_CODE;
 };

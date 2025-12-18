@@ -76,5 +76,9 @@ export const createManifestManager = (): TGenreManifestJson => {
       }
       row.publicPath = getManifestCdnDirUrl(row);
     },
+    dependencies: [],
+    setDependencies(list: IManifestJson[]) {
+      this.dependencies = list;
+    },
   };
 };

@@ -5,7 +5,7 @@ import {
   getManifestJsonUrl,
 } from "./donwload";
 import { checkDownloadFilesIsExpired } from "./manifest-core";
-import { IMfeJson, SAVE_CDN_FILE_PATH } from "@/config/config";
+import { checkIsRootManifest, IMfeJson, SAVE_CDN_FILE_PATH } from "@/config/config";
 import { IManifestJson } from "@/config/types";
 import path from "path";
 import { copyFilesByTargetPath } from "./copy";
@@ -34,7 +34,7 @@ export const moveOtherApps = ({
   const source = process.env.MFE_ROOT_OUTPUT_DIR!;
   manifestList.forEach((manifestJson) => {
     const { appCode } = manifestJson;
-    const targetPath = path.resolve(source, appCode);
+    const targetPath = checkIsRootManifest(manifestJson) ? source : path.resolve(source, appCode);
     const sourcePath = path.resolve(base, appCode);
 
     try {
