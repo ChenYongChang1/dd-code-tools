@@ -4,6 +4,7 @@ import { createHttpServer } from "./http-server";
 import { E_WS_TYPE, WS_PATH, WS_PORT } from "@/config/config";
 import { IMainAppFilePlugin } from "@/config/types";
 export class WsServer {
+  private static instance: WsServer;
   private wss: WebSocketServer;
   httpServer: import("http").Server<
     typeof import("http").IncomingMessage,
@@ -16,7 +17,20 @@ export class WsServer {
     this.httpServer = createHttpServer();
     this.clientMap = new Map();
   }
+
+  static getInstance(
+    handleMessage?: (opt: { type: E_WS_TYPE; data: any }) => void
+  ) {
+    if (!WsServer.instance) {
+      WsServer.instance = new WsServer(handleMessage);
+    } else if (handleMessage) {
+      WsServer.instance.handleMessage = handleMessage;
+    }
+    return WsServer.instance;
+  }
+
   createServer() {
+    if (this.wss) return; // 避免重复创建
     this.wss = new WebSocketServer({
       server: this.httpServer, // 绑定到 Vite 的 HTTP 服务器
       path: WS_PATH, // WS 连接路径，前端连接时用 ws://localhost:5173/__mfe__ws__
@@ -63,6 +77,8 @@ export class WsServer {
       // 拿到客户端传递的 appCode
       const url = new URL(request.url!, `http://${request.headers.host}`);
       const appCode = url.searchParams.get("appCode");
+      console.log(`[uni-WS] 客户端连接 WS 服务，appCode: ${appCode}`);
+
       if (!appCode) return;
       this.clientMap.set(appCode!, ws);
       this.sendMessageToApp(appCode!, {
@@ -76,6 +92,7 @@ export class WsServer {
 }
 
 export class WsClientServer {
+  private static instance: WsClientServer;
   ws: WebSocket;
   isConnected: boolean;
   constructor(
@@ -85,7 +102,20 @@ export class WsClientServer {
     this.ws = null;
     this.isConnected = false;
   }
+
+  static getInstance(
+    handleMessage?: (opt: { type: E_WS_TYPE; data: any }) => void
+  ) {
+    if (!WsClientServer.instance) {
+      WsClientServer.instance = new WsClientServer(handleMessage);
+    } else if (handleMessage) {
+      WsClientServer.instance.handleMessage = handleMessage;
+    }
+    return WsClientServer.instance;
+  }
+
   connect(appCode: string) {
+    if (this.isConnected && this.ws) return;
     this.ws = new WebSocket(
       `ws://localhost:${WS_PORT}${WS_PATH}?appCode=${appCode}`
     );
@@ -104,7 +134,10 @@ export class WsClientServer {
       this.isConnected = false;
       this.retryConnect(appCode);
     });
-    this.onMessage(this.handleMessage);
+    // 监听消息并使用当前的 handleMessage
+    this.ws.on("message", (message) => {
+      this.handleMessage?.(JSON.parse(message.toString()));
+    });
   }
   sendMessage(type: E_WS_TYPE, data: any) {
     if (this.isConnected) {
@@ -120,9 +153,9 @@ export class WsClientServer {
   //   // console.log("收到消息", message);
   // };
   onMessage(callback?: (message: any) => void) {
-    this.ws.on("message", (message) => {
-      callback?.(JSON.parse(message.toString()));
-    });
+    if (callback) {
+      this.handleMessage = callback;
+    }
   }
   retryConnect(appCode: string) {
     if (this.isConnected) return;

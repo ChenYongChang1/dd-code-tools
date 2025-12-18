@@ -151,7 +151,7 @@ const genreNewAppJson = (
  * 处理主应用服务端逻辑
  */
 const createMainAppServer = (manifestJson: TGenreManifestJson) => {
-  const mfeServer = new WsServer((opt) => {
+  const mfeServer = WsServer.getInstance((opt) => {
     const { type, data } = opt;
     if (type === E_WS_TYPE.CHANGE) {
       const outputPageJsonPath = getMainAppJsonPath();
@@ -179,7 +179,7 @@ const createMainAppServer = (manifestJson: TGenreManifestJson) => {
  * 处理子应用客户端逻辑
  */
 const createMainAppClient = (manifestJson: TGenreManifestJson, onInit: (data: any) => void) => {
-  const client = new WsClientServer((opt) => {
+  const client = WsClientServer.getInstance((opt) => {
     if (opt.type === E_WS_TYPE.INIT) {
       onInit(opt.data);
     }
