@@ -2,6 +2,7 @@ import { Plugin, ViteDevServer } from "vite";
 import WebSocket, { WebSocketServer } from "ws";
 import { createHttpServer } from "./http-server";
 import { E_WS_TYPE, WS_PATH, WS_PORT } from "@/config/config";
+import { IMainAppFilePlugin } from "@/config/types";
 export class WsServer {
   private wss: WebSocketServer;
   httpServer: import("http").Server<
@@ -9,8 +10,9 @@ export class WsServer {
     typeof import("http").ServerResponse
   >;
   clientMap: Map<string, WebSocket>;
-  constructor(public serverPlugin: any) {
-    this.serverPlugin = serverPlugin;
+  constructor(
+    public handleMessage?: (opt: { type: E_WS_TYPE; data: any }) => void
+  ) {
     this.httpServer = createHttpServer();
     this.clientMap = new Map();
   }
@@ -19,7 +21,7 @@ export class WsServer {
       server: this.httpServer, // 绑定到 Vite 的 HTTP 服务器
       path: WS_PATH, // WS 连接路径，前端连接时用 ws://localhost:5173/__mfe__ws__
     });
-    this.onMessage();
+    this.onMessage(this.handleMessage);
     this.onConnection();
     this.start();
   }
@@ -30,10 +32,12 @@ export class WsServer {
       );
     });
   }
-  onMessage() {
-    this.wss.on("message", (ws, message) => {
-      console.log("收到消息", message);
-    });
+  onMessage(callback?: (opt: { type: E_WS_TYPE; data: any }) => void) {
+    // WebSocketServer 不支持直接监听 message，必须在 connection 后的 socket 上监听
+    // 这里仅更新回调引用
+    if (callback) {
+      this.handleMessage = callback;
+    }
   }
 
   sendMessageToApp(appCode: string, message: any) {
@@ -45,7 +49,17 @@ export class WsServer {
 
   onConnection() {
     this.wss.on("connection", (ws, request) => {
-      console.log("客户端已连接 WS 服务", ws);
+      console.log("客户端已连接 WS 服务");
+
+      ws.on("message", (message) => {
+        try {
+          const data = JSON.parse(message.toString());
+          this.handleMessage?.(data);
+        } catch (e) {
+          console.error("WS消息解析失败:", e);
+        }
+      });
+
       // 拿到客户端传递的 appCode
       const url = new URL(request.url!, `http://${request.headers.host}`);
       const appCode = url.searchParams.get("appCode");
@@ -64,8 +78,10 @@ export class WsServer {
 export class WsClientServer {
   ws: WebSocket;
   isConnected: boolean;
-  constructor(public serverPlugin: any) {
-    this.serverPlugin = serverPlugin;
+  constructor(
+    public handleMessage?: (opt: { type: E_WS_TYPE; data: any }) => void
+  ) {
+    this.handleMessage = handleMessage;
     this.ws = null;
     this.isConnected = false;
   }
@@ -90,17 +106,24 @@ export class WsClientServer {
     });
     this.onMessage(this.handleMessage);
   }
-  handleMessage = (message: any) => {
-    const { type, data } = message;
-    if (type === E_WS_TYPE.INIT) {
-      // console.log("收到初始化消息", data);
-      this.serverPlugin.copyAppDistModule(data);
+  sendMessage(type: E_WS_TYPE, data: any) {
+    if (this.isConnected) {
+      console.log({ type, data }, "{ type, data }");
+
+      this.ws.send(JSON.stringify({ type, data }));
     }
-    // console.log("收到消息", message);
-  };
-  onMessage(callback: (message: any) => void) {
+  }
+  // handleMessage = (message: any) => {
+  //   const { type, data } = message;
+  //   if (type === E_WS_TYPE.INIT) {
+  //     // console.log("收到初始化消息", data);
+  //     this.serverPlugin.copyAppDistModule(data);
+  //   }
+  //   // console.log("收到消息", message);
+  // };
+  onMessage(callback?: (message: any) => void) {
     this.ws.on("message", (message) => {
-      callback(JSON.parse(message.toString()));
+      callback?.(JSON.parse(message.toString()));
     });
   }
   retryConnect(appCode: string) {

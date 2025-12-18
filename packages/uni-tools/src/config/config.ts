@@ -154,4 +154,16 @@ export enum E_WS_TYPE {
   CHANGE = "change_files",
 }
 
+export const getMainAppJSon = (mode, appCode) => {
+  return path.join(
+    SAVE_CDN_FILE_PATH,
+    mode || "dev",
+    appCode || "",
+    "app.json"
+  );
+};
+
+export const getMainAppJsonPath = () =>
+  path.join(process.env.UNI_OUTPUT_DIR!, "app.json");
+
 export const getMainManifestJson = () => {};

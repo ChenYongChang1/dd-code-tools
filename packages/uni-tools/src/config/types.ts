@@ -29,3 +29,9 @@ export type TGenreManifestJson = {
   setDependencies: (list: IManifestJson[]) => void;
   dependencies: IManifestJson[];
 };
+
+
+export interface IMainAppFilePlugin {
+  copyAppDistModule: (options: { pwd: string }) => void;
+  initWatchChange: () => void;
+}

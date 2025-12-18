@@ -65,6 +65,13 @@ export function writeFiles(filaPath, content) {
   return fs.writeFileSync(filaPath, content, "utf-8");
 }
 
+export const checkAndgenreDir = (dir: string) => {
+  if (!fs.existsSync(dir)) {
+    // 如果路径不存在，创建路径
+    fs.mkdirSync(dir, { recursive: true });
+  }
+};
+
 export const loadViteConfig = (mode: string) => {
   const loadEnv = require("vite").loadEnv;
   const ROOT = process.cwd();

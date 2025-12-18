@@ -1,16 +1,31 @@
-import { IManifestJson, TGenreManifestJson } from "@/config/types";
+import chokidar from "chokidar";
+import {
+  IMainAppFilePlugin,
+  IManifestJson,
+  TGenreManifestJson,
+} from "@/config/types";
 import uniCdn from "@/cdn";
 import {
   checkIsRootManifest,
+  E_WS_TYPE,
+  getMainAppJSon,
+  getMainAppJsonPath,
+  MANIFEST_NAME,
   ROOT_APP_CODE,
   SAVE_CDN_FILE_PATH,
 } from "@/config/config";
-import { fetchFileByPath, uniReadFile, writeFiles } from "@/utils/utils";
+import {
+  checkAndgenreDir,
+  fetchFileByPath,
+  uniReadFile,
+  writeFiles,
+} from "@/utils/utils";
 import { Plugin } from "vite";
 import path from "path";
 import { getPagesJson } from "../uni-pages";
 import { WsServer, WsClientServer } from "../server";
-import { copyFilesByTargetPath } from "../copy";
+import { copyFileByPath, copyFilesByTargetPath } from "../copy";
+import { MFE_NAME } from "@/config/const";
 
 const getMainAppContent = async ({
   code,
@@ -32,21 +47,16 @@ const getMainAppContent = async ({
 const filterManifestJsonListAndMainPageJson = (
   manifestJsonList: IManifestJson[]
 ) => {
-  const mainPageJson = manifestJsonList.find((item) =>
-    checkIsRootManifest(item)
-  )!;
-  if (!mainPageJson) {
-    throw new Error("mainPageJson is undefined");
-  }
-  const mainAppJsonPath = path.join(
-    SAVE_CDN_FILE_PATH,
-    mainPageJson.mode || "dev",
-    mainPageJson?.appCode || "",
-    "app.json"
-  );
-  const outputPageJsonPath = path.join(process.env.UNI_OUTPUT_DIR!, "app.json");
+  // const mainPageJson = manifestJsonList.find((item) =>
+  //   checkIsRootManifest(item)
+  // )!;
+  // if (!mainPageJson) {
+  //   throw new Error("mainPageJson is undefined");
+  // }
+  // const mainAppJsonPath = getMainAppJSon(mainPageJson.mode, mainPageJson?.appCode);
+  const outputPageJsonPath = getMainAppJsonPath();
   return {
-    mainAppJsonPath,
+    // mainAppJsonPath,
     outputPageJsonPath,
     manifestList: manifestJsonList.filter((item) => !checkIsRootManifest(item)),
   };
@@ -81,22 +91,119 @@ export const genreFullMainAppJsonByManifestList = (
   return renderPagesJsonByArray(manifestList, appJson);
 };
 
+const watchDistChangeAndSyncFile = (mainPwd, onReady, onChange) => {
+  const filePath = path.resolve(process.env.MFE_SOURCE_OUTPUT_DIR!);
+  // console.log(filePath, process.cwd(), "MFE_SOURCE_OUTPUT_DIR!");
+  checkAndgenreDir(filePath);
+  const watcher = chokidar.watch(filePath, {
+    persistent: true,
+    ignoreInitial: true,
+    usePolling: true,
+    interval: 100,
+    awaitWriteFinish: { stabilityThreshold: 200, pollInterval: 100 },
+    followSymlinks: true,
+  });
+
+  watcher.on("ready", onReady);
+  ["add", "change", "unlink"].forEach((evt) => {
+    // @ts-ignore
+    watcher.on(evt, (p: string) => {
+      const rel = path.relative(process.env.MFE_SOURCE_OUTPUT_DIR!, p);
+      const type = evt;
+      const sourcePath = p;
+      const targetPath = path.join(mainPwd, rel);
+
+      if (["add", "change"].includes(type)) {
+        copyFilesByTargetPath(sourcePath, targetPath);
+      }
+      onChange?.({ type, p, sourcePath, targetPath });
+    });
+  });
+};
+
+const genreNewAppJson = (
+  outputPageJsonPath: string,
+  mainAppJsonPath: string,
+  manifestList: IManifestJson[]
+) => {
+  const appJson = uniReadFile(mainAppJsonPath);
+  const newAppJSon = genreFullMainAppJsonByManifestList(
+    { subPackages: [], ...appJson },
+    manifestList
+  );
+  writeFiles(outputPageJsonPath, newAppJSon);
+};
+
 export const createMainAppPlugin = (
   manifestJson: TGenreManifestJson
 ): Plugin[] => {
-  const serverPlugin = {
+  let mainPwd = "";
+  let isWatcherReady = false;
+  let mfeClientServer: WsClientServer;
+  let mfeServer: WsServer;
+  let fn: (() => void) | null = null;
+
+  const serverPlugin: Plugin & IMainAppFilePlugin = {
     name: "@chagee:main-app:serve",
-    async options() {
+    async config() {
       if (manifestJson.value.isRoot) {
-        const mfeServer = new WsServer(serverPlugin);
+        mfeServer = new WsServer((opt) => {
+          // console.log(opt, "----");
+          const { type, data } = opt;
+          if (type === E_WS_TYPE.CHANGE) {
+            const outputPageJsonPath = getMainAppJsonPath();
+            const manifestPath = path.join(
+              process.env.UNI_OUTPUT_DIR!,
+              data.appCode,
+              MANIFEST_NAME
+            );
+            const manifestChildJson = uniReadFile(manifestPath);
+            // console.log(manifestChildJson, "manifestChildJson");
+
+            genreNewAppJson(outputPageJsonPath, outputPageJsonPath, [
+              manifestChildJson,
+            ]);
+          }
+        });
         mfeServer.createServer();
       } else {
-        const mfeClientServer = new WsClientServer(serverPlugin);
+        mfeClientServer = new WsClientServer((opt) => {
+          if (opt.type === E_WS_TYPE.INIT) {
+            serverPlugin.copyAppDistModule(opt.data);
+          }
+        });
         mfeClientServer.connect(manifestJson.value.appCode);
       }
     },
+    closeBundle() {
+      if (!manifestJson.value.isRoot) {
+        serverPlugin.initWatchChange();
+        fn?.();
+        fn = null;
+      }
+    },
+    initWatchChange() {
+      if (isWatcherReady) return;
+      watchDistChangeAndSyncFile(
+        mainPwd,
+        () => {
+          isWatcherReady = true;
+        },
+        (change) => {
+          fn = () =>
+            mfeClientServer.sendMessage(E_WS_TYPE.CHANGE, {
+              ...change,
+              appCode: manifestJson.value.appCode,
+            });
+        }
+      );
+    },
+    // watchChange(change) {
+    //   console.log({ change }, "change");
+    // },
     copyAppDistModule({ pwd }: any) {
-      const targetPath = path.join(pwd, manifestJson.value.appCode);
+      mainPwd = path.join(pwd, manifestJson.value.appCode);
+      const targetPath = mainPwd;
       const sourcePath = process.env.MFE_SOURCE_OUTPUT_DIR!;
       copyFilesByTargetPath(sourcePath, targetPath);
     },
@@ -107,17 +214,18 @@ export const createMainAppPlugin = (
       name: "@chagee:main-app",
       enforce: "post",
       async closeBundle() {
-        const { mainAppJsonPath, outputPageJsonPath, manifestList } =
+        const { outputPageJsonPath, manifestList } =
           filterManifestJsonListAndMainPageJson([
             ...manifestJson.dependencies,
             manifestJson.value,
           ]);
-        const appJson = uniReadFile(mainAppJsonPath);
-        const newAppJSon = genreFullMainAppJsonByManifestList(
-          { subPackages: [], ...appJson },
-          manifestList
+
+        const mainAppJsonPath = getMainAppJSon(
+          manifestJson.value.mode,
+          ROOT_APP_CODE
         );
-        writeFiles(outputPageJsonPath, newAppJSon);
+
+        genreNewAppJson(outputPageJsonPath, mainAppJsonPath, manifestList);
       },
     },
   ];

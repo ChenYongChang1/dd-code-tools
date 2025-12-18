@@ -44,6 +44,18 @@ export const copyFilesByTargetPath = (
   targetPath: string
 ) => {
   if (!fs.existsSync(sourcePath)) return;
-  fsExtra.ensureDirSync(targetPath);
+  try {
+    const targetDir = path.dirname(targetPath);
+    fsExtra.ensureDirSync(targetDir);
+  } catch (err) {}
   fsExtra.copySync(sourcePath, targetPath, { overwrite: true });
+};
+
+export const copyFileByPath = (sourcePath: string, targetPath: string) => {
+  if (!fs.existsSync(sourcePath)) return;
+  try {
+    const targetDir = path.dirname(targetPath);
+    fsExtra.ensureDirSync(targetDir);
+  } catch (err) {}
+  fsExtra.copyFileSync(sourcePath, targetPath, { overwrite: true });
 };
