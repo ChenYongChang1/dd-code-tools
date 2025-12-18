@@ -4,7 +4,7 @@ class UniCdnManager {
   HOST: string;
   constructor(HOST?: string) {
     // 初始化 CDN 管理器
-    this.HOST = HOST || "https://static.chagee.com";
+    this.HOST = HOST || "";
   }
   getCdnUrl({
     code,
