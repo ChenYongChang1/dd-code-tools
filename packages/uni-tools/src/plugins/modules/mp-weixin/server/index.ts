@@ -108,8 +108,6 @@ export class WsClientServer {
   }
   sendMessage(type: E_WS_TYPE, data: any) {
     if (this.isConnected) {
-      console.log({ type, data }, "{ type, data }");
-
       this.ws.send(JSON.stringify({ type, data }));
     }
   }
