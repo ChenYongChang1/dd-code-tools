@@ -39,7 +39,6 @@ export const moveOtherApps = ({
     const { appCode } = manifestJson;
     const targetPath = checkIsRootManifest(manifestJson) ? source : path.resolve(source, appCode);
     const sourcePath = path.resolve(base, appCode);
-
     try {
       copyFilesByTargetPath(sourcePath, targetPath);
     } catch (error) {}

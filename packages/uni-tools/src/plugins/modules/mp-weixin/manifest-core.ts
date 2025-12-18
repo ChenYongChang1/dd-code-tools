@@ -10,6 +10,7 @@ import { getNodeModulesEnvAppCodeFilePath } from "./donwload";
 import {
   formatCliCommandConfig,
   getManifestCdnDirUrl,
+  getMfeJson,
   IMfeJson,
   MANIFEST_CND_DIR_URL,
   MANIFEST_NAME,
@@ -68,11 +69,13 @@ export const createManifestManager = (): TGenreManifestJson => {
     setEnv(mode) {
       // const env = loadViteConfig(mode);
       const env = formatCliCommandConfig(mode);
+      const mfeJson = getMfeJson();
       row.mode = mode;
       row.code = env.code;
       row.appCode = env.appCode;
       if (env.isRoot) {
         row.isRoot = true;
+        row.apps = mfeJson.apps;
       }
       row.publicPath = getManifestCdnDirUrl(row);
     },

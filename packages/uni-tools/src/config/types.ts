@@ -1,3 +1,5 @@
+import { IMfeJson } from "./config";
+
 export interface IManifestJson {
   mode: string;
   cdn: string;
@@ -7,6 +9,7 @@ export interface IManifestJson {
   isRoot?: boolean;
   platform: string;
   publicPath: string;
+  apps?: IMfeJson["apps"];
   pagesJson: {
     pages?: { path: string; style: Record<string, string> }[];
     [k: string]: any;

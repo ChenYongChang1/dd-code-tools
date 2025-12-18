@@ -28,10 +28,12 @@ export const createManifestPlugin = (
       const all = walkDir(outDir, emitted);
       manifestJson.setFiles(outDir, all);
 
-      const sourcePath = path.resolve(
-        process.env.MFE_ROOT_OUTPUT_DIR!,
-        manifestJson.value.appCode
-      );
+      const sourcePath = manifestJson.value.isRoot
+        ? process.env.MFE_ROOT_OUTPUT_DIR!
+        : path.resolve(
+            process.env.MFE_ROOT_OUTPUT_DIR!,
+            manifestJson.value.appCode
+          );
       // debugger;
       manifestJson.saveFile(sourcePath);
 
