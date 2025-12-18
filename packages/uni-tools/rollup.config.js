@@ -5,7 +5,26 @@ import dts from "rollup-plugin-dts";
 import terser from "@rollup/plugin-terser";
 import alias from "@rollup/plugin-alias";
 
-const external = ["vite", "@dd-code/shared", 'http', 'ws', 'express'];
+// "chalk": "^5.6.2",
+//     "chokidar": "^5.0.0",
+//     "cli-progress": "^3.12.0",
+//     "cors": "^2.8.5",
+//     "express": "^5.2.1",
+//     "fs-extra": "^11.3.2",
+//     "ws": "^8.18.3"
+const external = [
+  "vite",
+  "fs-extra",
+  "@dd-code/shared",
+  "chokidar",
+  "cli-progress",
+  "chalk",
+  "cors",
+  "http",
+  "ws",
+  "express",
+  "commander",
+];
 
 export default [
   // 主构建配置
@@ -28,13 +47,13 @@ export default [
         preferBuiltins: true, // 优先使用 Node.js 内置模块
       }),
       commonjs(),
-      terser({
-        compress: {
-          drop_console: true, // 移除 console 语句
-          drop_debugger: false, // 移除 debugger 语句
-        },
-        mangle: true, // 混淆变量名
-      }),
+      // terser({
+      //   compress: {
+      //     // drop_console: true, // 移除 console 语句
+      //     drop_debugger: false, // 移除 debugger 语句
+      //   },
+      //   mangle: true, // 混淆变量名
+      // }),
       typescript({
         tsconfig: "./tsconfig.json",
         declaration: false, // 类型声明文件单独生成
@@ -62,13 +81,13 @@ export default [
         preferBuiltins: true, // 优先使用 Node.js 内置模块
       }),
       commonjs(),
-      terser({
-        compress: {
-          drop_console: true, // 移除 console 语句
-          drop_debugger: false, // 移除 debugger 语句
-        },
-        mangle: true, // 混淆变量名
-      }),
+      // terser({
+      //   compress: {
+      //     // drop_console: true, // 移除 console 语句
+      //     drop_debugger: false, // 移除 debugger 语句
+      //   },
+      //   mangle: true, // 混淆变量名
+      // }),
       typescript({
         tsconfig: "./tsconfig.json",
         declaration: false, // 类型声明文件单独生成

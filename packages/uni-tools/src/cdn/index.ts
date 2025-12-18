@@ -6,9 +6,13 @@ import {
 import { loadViteConfig } from "@/utils/utils";
 
 class UniCdnManager {
+  HOST: string;
   constructor() {
     // 初始化 CDN 管理器
-    // this.HOST = HOST || process.env.MFE_CDN_HOST || "";
+    this.HOST = "";
+  }
+  setCdnHost(host: string) {
+    this.HOST = host;
   }
   getCdnUrl({
     code,
@@ -19,9 +23,13 @@ class UniCdnManager {
     mode: string;
     appCode: string;
   }) {
-    const viteEnv = loadViteConfig(mode || "dev");
+    if(!this.HOST){
+      throw Error('请先设置环境变量 MFE_CDN_HOST')
+    }
+    // this.HOST = this.HOST || loadViteConfig(mode || "dev").MFE_CDN_HOST;
+    // const viteEnv = loadViteConfig(mode || "dev").MFE_CDN_HOST;
     // const HOST = process.env.MFE_CDN_HOST || "";
-    return [`${viteEnv.MFE_CDN_HOST}`, getManifestCdnDirUrl({ mode, code, appCode })];
+    return [`${this.HOST}`, getManifestCdnDirUrl({ mode, code, appCode })];
   }
   getManifestUrl({
     code,

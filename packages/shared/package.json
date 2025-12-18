@@ -1,6 +1,6 @@
 {
   "name": "@dd-code/shared",
-  "version": "1.0.5",
+  "version": "1.0.9",
   "description": "Shared utilities and common code",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -14,6 +14,9 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {},
+  "peerDependencies": {
+    "commander": ">=9.4.1"
+  },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.6",
     "@rollup/plugin-json": "^6.1.0",

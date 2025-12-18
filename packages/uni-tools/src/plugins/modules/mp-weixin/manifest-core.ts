@@ -34,7 +34,7 @@ export const createManifestManager = (): TGenreManifestJson => {
   const row: IManifestJson = {
     code: "",
     mode: "",
-    cdn: cdn.HOST,
+    cdn: '',
     hash: "",
     publicPath: "",
     appCode: "",
@@ -71,9 +71,12 @@ export const createManifestManager = (): TGenreManifestJson => {
       // const env = loadViteConfig(mode);
       const env = formatCliCommandConfig(mode);
       const mfeJson = getMfeJson();
+
+      row.cdn = env.cdn
       row.mode = mode;
       row.code = env.code;
       row.appCode = env.appCode;
+      cdn.setCdnHost(env.cdn);
       if (env.isRoot) {
         row.isRoot = true;
         row.apps = mfeJson.apps;

@@ -5,7 +5,7 @@ import json from "@rollup/plugin-json";
 import terser from "@rollup/plugin-terser";
 import dts from "rollup-plugin-dts";
 
-const external = ["commander"];
+const external = [];
 
 export default [
   // 主构建配置

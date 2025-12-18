@@ -140,6 +140,7 @@ export const formatCliCommandConfig = (mode) => {
     appCode: isRoot ? ROOT_APP_CODE : viteEnv.MFE_APP_CODE,
     code: viteEnv.MFE_UNI_CODE,
     mode,
+    cdn: viteEnv.MFE_CDN_HOST,
   };
 };
 
