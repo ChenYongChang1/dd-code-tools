@@ -107,7 +107,7 @@ const watchDistChangeAndSyncFile = (mainPwd: string, onReady: () => void, onChan
 
   watcher.on("ready", onReady);
 
-  ["add", "change", "unlink", "addDir", "unlinkDir"].forEach((evt) => {
+  ["add", "change", "unlink"].forEach((evt) => {
     // @ts-ignore
     watcher.on(evt, (p: string) => {
       if (!isTargetFile(p)) return;
@@ -224,7 +224,7 @@ export const createMainAppPlugin = (
         mainPwd,
         () => {
           isWatcherReady = true;
-          console.log(`[Watcher] Ready watching: ${process.env.MFE_SOURCE_OUTPUT_DIR}`);
+          // console.log(`[Watcher] Ready watching: ${process.env.MFE_SOURCE_OUTPUT_DIR}`);
         },
         (change) => {
           fn = () =>
