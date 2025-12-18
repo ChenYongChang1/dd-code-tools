@@ -1,4 +1,4 @@
-import { getMfeJson } from "./config/config";
+import { getPlatform } from "./config/config";
 import { EPlaform } from "./config/enum";
 import { createMpWeixinUniPlugin } from "./plugins/mp-weixin";
 
@@ -14,7 +14,7 @@ import { createMpWeixinUniPlugin } from "./plugins/mp-weixin";
  * });
  */
 export default (options?: Record<string, any>) => {
-  const { platform } = getMfeJson();
+  const platform = getPlatform();
   return platform === EPlaform.MP_WEIXIN
     ? createMpWeixinUniPlugin(options)
     : [];

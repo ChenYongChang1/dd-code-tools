@@ -1,7 +1,10 @@
 import {
   BASE_APP_CODE_LIST,
   formatCliCommandConfig,
+  getMainAppJson,
+  getMainAppPages,
   getMfeJson,
+  IMfeJson,
   ROOT_APP_CODE,
   SAVE_CDN_FILE_PATH,
 } from "@/config/config";
@@ -31,22 +34,32 @@ export const getNodeModulesEnvAppCodeFilePath = (conf, fileName) => {
  * const urls = getManifestJsonUrl('prod');
  * // 返回: [{ url: '...', appCode: 'main', code: 'my-project' }]
  */
-export const getManifestJsonUrl = (mode: string) => {
+export const getManifestJsonUrl = async (mode: string) => {
   const { isRoot = false, code = "mfe-uni" } = formatCliCommandConfig(mode);
   let apps: string[] = [];
   // const { mode, code = "mfe-uni" } = manifestJson;
+  const mfeJson = getMfeJson();
   try {
-    const JSON = getMfeJson();
-    const configApps = isRoot ? JSON.apps : [{ appCode: ROOT_APP_CODE }];
+    // const configApps = isRoot ? mfeJson.apps : await getMainAppPages(mode);
+    let configApps: IMfeJson['apps'] = [];
+    if (isRoot) {
+      configApps = mfeJson.apps || [];
+    } else {
+      configApps = await getMainAppPages(mode);
+      configApps = [...configApps, { appCode: ROOT_APP_CODE }];
+    }
+    // console.log(JSON, isRoot, "JSON");
+    // debugger
+    // const configApps = JSON.apps; // isRoot ? JSON.apps : [{ appCode: ROOT_APP_CODE }];
     apps = Array.from(
       new Set([
         ...(configApps || []).map((i) => i.appCode),
-        ...BASE_APP_CODE_LIST,
+        // ...BASE_APP_CODE_LIST,
       ])
     );
     // code = JSON.code || "";
   } catch (e) {
-    apps = BASE_APP_CODE_LIST;
+    apps = []; // BASE_APP_CODE_LIST;
     // code = "mfe-uni";
   }
 

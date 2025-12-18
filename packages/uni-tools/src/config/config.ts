@@ -1,7 +1,8 @@
 import path from "path";
 import { MFE_NAME } from "./const";
 import { EPlaform } from "./enum";
-import { loadViteConfig, uniReadFile } from "@/utils/utils";
+import { fetchFileByPath, loadViteConfig, uniReadFile } from "@/utils/utils";
+import uniCdn from "@/cdn";
 import { IManifestJson } from "./types";
 export interface IMfeJson {
   // isRoot: boolean;
@@ -72,7 +73,6 @@ export const getManifestCdnDirUrl = ({
  * @returns {string} returns.code - 项目代码
  * @returns {string} returns.appCode - 应用代码
  * @example
- * const config = getMfeJson();
  * // 返回: { isRoot: true, code: 'myapp', appCode: 'main', ... }
  */
 export const getMfeJson = (): IMfeJson => {
@@ -99,6 +99,38 @@ export const getMfeJson = (): IMfeJson => {
   return json;
 };
 
+export const getMainAppJson = async (mode: string) => {
+  // const mainUrl = getManifestJsonUrl(mode);
+  const env = formatCliCommandConfig(mode);
+  const baseUrl = uniCdn.getManifestUrl({
+    code: env.code,
+    appCode: ROOT_APP_CODE,
+    mode,
+  });
+  const mainJson = await fetchFileByPath(baseUrl);
+  return mainJson;
+};
+export const getMainAppPages = async (mode: string) => {
+  const mainJson = await getMainAppJson(mode);
+  return (
+    mainJson.apps || [
+      {
+        appCode: "modules/bwzb",
+      },
+      {
+        appCode: "modules/manage",
+      },
+      {
+        appCode: "login",
+      },
+    ]
+  );
+};
+
+export const getPlatform = () => {
+  return process.env.UNI_PLATFORM || "h5";
+};
+
 export const formatCliCommandConfig = (mode) => {
   const viteEnv = loadViteConfig(mode || "dev");
   const isRoot = viteEnv.MFE_UNI_IS_ROOT;
@@ -113,3 +145,5 @@ export const formatCliCommandConfig = (mode) => {
 export const checkIsRootManifest = (manifest: IManifestJson) => {
   return manifest.isRoot || manifest.appCode === ROOT_APP_CODE;
 };
+
+export const getMainManifestJson = () => {};

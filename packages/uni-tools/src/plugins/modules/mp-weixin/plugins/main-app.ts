@@ -33,6 +33,9 @@ const filterManifestJsonListAndMainPageJson = (
   const mainPageJson = manifestJsonList.find((item) =>
     checkIsRootManifest(item)
   )!;
+  if (!mainPageJson) {
+    throw new Error("mainPageJson is undefined");
+  }
   const mainAppJsonPath = path.join(
     SAVE_CDN_FILE_PATH,
     mainPageJson.mode || "dev",

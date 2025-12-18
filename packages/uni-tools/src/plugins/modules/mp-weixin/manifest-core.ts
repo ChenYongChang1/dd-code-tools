@@ -10,7 +10,6 @@ import { getNodeModulesEnvAppCodeFilePath } from "./donwload";
 import {
   formatCliCommandConfig,
   getManifestCdnDirUrl,
-  getMfeJson,
   IMfeJson,
   MANIFEST_CND_DIR_URL,
   MANIFEST_NAME,
@@ -23,7 +22,8 @@ export const checkDownloadFilesIsExpired = (manifestList: IManifestJson[]) => {
   return manifestList.filter((conf) => {
     const targetPath = getNodeModulesEnvAppCodeFilePath(conf, MANIFEST_NAME);
     const oldJson = uniReadFile(targetPath);
-    return !conf.hash || oldJson?.hash !== conf.hash;
+    const flag = !conf.hash || oldJson?.hash !== conf.hash;
+    return flag;
   });
 };
 
