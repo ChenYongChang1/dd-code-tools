@@ -84,10 +84,10 @@ export const createManifestManager = (): TGenreManifestJson => {
     setDependencies(list: IManifestJson[]) {
       this.dependencies = list;
     },
-    getFullManifestJsonList() {
-      const files = import.meta.globEager("./**/*.json");
-      console.log(files);
-      // return [...this.dependencies, this.value];
-    },
+    // getFullManifestJsonList() {
+    //   const files = import.meta.globEager("./**/*.json");
+    //   console.log(files);
+    //   // return [...this.dependencies, this.value];
+    // },
   };
 };
