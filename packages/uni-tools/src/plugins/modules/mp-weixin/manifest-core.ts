@@ -23,7 +23,8 @@ export const checkDownloadFilesIsExpired = (manifestList: IManifestJson[]) => {
   return manifestList.filter((conf) => {
     const targetPath = getNodeModulesEnvAppCodeFilePath(conf, MANIFEST_NAME);
     const oldJson = uniReadFile(targetPath);
-    const flag = oldJson?.hash !== conf.hash;
+
+    const flag = !oldJson ||oldJson?.hash !== conf.hash;
     return flag;
   });
 };

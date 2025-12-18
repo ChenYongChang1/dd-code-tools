@@ -134,6 +134,7 @@ export const getPlatform = () => {
 export const formatCliCommandConfig = (mode) => {
   const viteEnv = loadViteConfig(mode || "dev");
   const isRoot = viteEnv.MFE_UNI_IS_ROOT;
+  // MFE_CDN_HOST
   return {
     isRoot,
     appCode: isRoot ? ROOT_APP_CODE : viteEnv.MFE_APP_CODE,

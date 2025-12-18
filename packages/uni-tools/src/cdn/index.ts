@@ -1,10 +1,14 @@
-import { getManifestCdnDirUrl, MANIFEST_CND_DIR_URL, MANIFEST_NAME } from "@/config/config";
+import {
+  getManifestCdnDirUrl,
+  MANIFEST_CND_DIR_URL,
+  MANIFEST_NAME,
+} from "@/config/config";
+import { loadViteConfig } from "@/utils/utils";
 
 class UniCdnManager {
-  HOST: string;
-  constructor(HOST?: string) {
+  constructor() {
     // 初始化 CDN 管理器
-    this.HOST = HOST || "";
+    // this.HOST = HOST || process.env.MFE_CDN_HOST || "";
   }
   getCdnUrl({
     code,
@@ -15,7 +19,9 @@ class UniCdnManager {
     mode: string;
     appCode: string;
   }) {
-    return [`${this.HOST}`, getManifestCdnDirUrl({ mode, code, appCode })];
+    const viteEnv = loadViteConfig(mode || "dev");
+    // const HOST = process.env.MFE_CDN_HOST || "";
+    return [`${viteEnv.MFE_CDN_HOST}`, getManifestCdnDirUrl({ mode, code, appCode })];
   }
   getManifestUrl({
     code,

@@ -12,15 +12,11 @@ import { copyFilesByTargetPath } from "./copy";
 
 export const downloadFullApps = async (manifestJson: IManifestJson) => {
   const _appsUrls = await getManifestJsonUrl(manifestJson.mode);
-  // console.log(appsUrls, 'appsUrls');
   const appsUrls = _appsUrls.filter((i) => i.appCode !== manifestJson.appCode);
 
   const manifestList = await downloadManifestJson(appsUrls.map((i) => i.url));
-  // debugger
-  // console.log(manifestList, 'manifestList');
 
   const expiredList = checkDownloadFilesIsExpired(manifestList);
-
   if (expiredList.length) {
     await downloadProjectFiles(expiredList);
   }
