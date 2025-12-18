@@ -49,7 +49,7 @@ export class WsServer {
 
   onConnection() {
     this.wss.on("connection", (ws, request) => {
-      console.log("客户端已连接 WS 服务");
+      // console.log("客户端已连接 WS 服务");
 
       ws.on("message", (message) => {
         try {
@@ -90,17 +90,17 @@ export class WsClientServer {
       `ws://localhost:${WS_PORT}${WS_PATH}?appCode=${appCode}`
     );
     this.ws.on("open", () => {
-      console.log("客户端已连接 WS 服务");
+      // console.log("客户端已连接 WS 服务");
       this.isConnected = true;
     });
     this.ws.on("close", () => {
-      console.log("客户端已关闭 WS 服务");
+      // console.log("客户端已关闭 WS 服务");
       this.isConnected = false;
       this.retryConnect(appCode);
     });
     // 重试连接
     this.ws.on("error", () => {
-      console.log("连接失败，重试连接...");
+      // console.log("连接失败，重试连接...");
       this.isConnected = false;
       this.retryConnect(appCode);
     });
