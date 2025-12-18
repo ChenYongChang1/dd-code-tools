@@ -5,7 +5,7 @@ import dts from "rollup-plugin-dts";
 import terser from "@rollup/plugin-terser";
 import alias from "@rollup/plugin-alias";
 
-const external = ["vite", "@chagee/chain-shared"];
+const external = ["vite", "@chagee/chain-shared", 'http', 'ws', 'express'];
 
 export default [
   // 主构建配置

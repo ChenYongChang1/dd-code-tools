@@ -41,7 +41,7 @@ export const getManifestJsonUrl = async (mode: string) => {
   const mfeJson = getMfeJson();
   try {
     // const configApps = isRoot ? mfeJson.apps : await getMainAppPages(mode);
-    let configApps: IMfeJson['apps'] = [];
+    let configApps: IMfeJson["apps"] = [];
     if (isRoot) {
       configApps = mfeJson.apps || [];
     } else {
@@ -140,7 +140,7 @@ export const downloadProjectFiles = async (manifestList: IManifestJson[]) => {
       manifestJson,
       path.resolve(SAVE_CDN_FILE_PATH, manifestJson.mode || "dev"),
       (index, total) => {
-        CliProgressManager.updateProgressBar(manifestJson.appCode, index);
+        CliProgressManager.updateProgressBar(manifestJson.appCode, index + 1);
       }
     );
     downloadList.push(fn);

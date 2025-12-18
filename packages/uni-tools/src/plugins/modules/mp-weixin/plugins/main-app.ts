@@ -9,6 +9,8 @@ import { fetchFileByPath, uniReadFile, writeFiles } from "@/utils/utils";
 import { Plugin } from "vite";
 import path from "path";
 import { getPagesJson } from "../uni-pages";
+import { WsServer, WsClientServer } from "../server";
+import { copyFilesByTargetPath } from "../copy";
 
 const getMainAppContent = async ({
   code,
@@ -42,10 +44,7 @@ const filterManifestJsonListAndMainPageJson = (
     mainPageJson?.appCode || "",
     "app.json"
   );
-  const outputPageJsonPath = path.join(
-    process.env.UNI_OUTPUT_DIR!,
-    "app.json"
-  );
+  const outputPageJsonPath = path.join(process.env.UNI_OUTPUT_DIR!, "app.json");
   return {
     mainAppJsonPath,
     outputPageJsonPath,
@@ -85,27 +84,40 @@ export const genreFullMainAppJsonByManifestList = (
 export const createMainAppPlugin = (
   manifestJson: TGenreManifestJson
 ): Plugin[] => {
+  const serverPlugin = {
+    name: "@chagee:main-app:serve",
+    async options() {
+      if (manifestJson.value.isRoot) {
+        const mfeServer = new WsServer(serverPlugin);
+        mfeServer.createServer();
+      } else {
+        const mfeClientServer = new WsClientServer(serverPlugin);
+        mfeClientServer.connect(manifestJson.value.appCode);
+      }
+    },
+    copyAppDistModule({ pwd }: any) {
+      const targetPath = path.join(pwd, manifestJson.value.appCode);
+      const sourcePath = process.env.MFE_SOURCE_OUTPUT_DIR!;
+      copyFilesByTargetPath(sourcePath, targetPath);
+    },
+  };
   return [
+    serverPlugin,
     {
       name: "@chagee:main-app",
       enforce: "post",
       async closeBundle() {
         const { mainAppJsonPath, outputPageJsonPath, manifestList } =
-          filterManifestJsonListAndMainPageJson([...manifestJson.dependencies, manifestJson.value]);
+          filterManifestJsonListAndMainPageJson([
+            ...manifestJson.dependencies,
+            manifestJson.value,
+          ]);
         const appJson = uniReadFile(mainAppJsonPath);
         const newAppJSon = genreFullMainAppJsonByManifestList(
           { subPackages: [], ...appJson },
           manifestList
         );
-
         writeFiles(outputPageJsonPath, newAppJSon);
-        // console.log(newAppJSon);
-
-        // debugger;
-        // const mainJson = await getMainAppContent({
-        //   code: manifestJson.value.code,
-        //   mode: manifestJson.value.mode,
-        // });
       },
     },
   ];

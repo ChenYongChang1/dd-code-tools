@@ -146,4 +146,12 @@ export const checkIsRootManifest = (manifest: IManifestJson) => {
   return manifest.isRoot || manifest.appCode === ROOT_APP_CODE;
 };
 
+export const WS_PORT = 3560;
+export const WS_PATH = "/__mfe__ws__";
+
+export enum E_WS_TYPE {
+  INIT = "init_files",
+  CHANGE = "change_files",
+}
+
 export const getMainManifestJson = () => {};
