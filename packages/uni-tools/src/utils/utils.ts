@@ -78,7 +78,7 @@ export const loadViteConfig = (mode: string) => {
   return loadEnv(mode, ROOT, "MFE_");
 };
 
-export const walkDir = (outDir: string, emitted: Set<string>) => {
+export const walkDir = (outDir: string, emitted: Set<string> = new Set()) => {
   const root = path.isAbsolute(outDir)
     ? outDir
     : path.resolve(process.cwd(), outDir);
@@ -90,6 +90,7 @@ export const walkDir = (outDir: string, emitted: Set<string>) => {
       const stat = fs.statSync(p);
       if (stat.isDirectory()) walk(p);
       else all.push(path.relative(root, p));
+      // path.relative(root, p)
     });
   };
   walk(root);
@@ -148,3 +149,17 @@ function generateSHA256(content) {
 }
 
 export { generateHash, generateMD5, generateSHA1, generateSHA256 };
+
+export const genreFileInfoRow = (row: { fileName: string; source: string }) => {
+  const { fileName, source } = row;
+  const name = path.basename(fileName);
+  const dir = path.dirname(fileName);
+  const suffix = dir === "." ? "" : `${dir}/`;
+  return {
+    fileName,
+    fileUrl: `${suffix}${generateSHA256(source?.toString() || "").slice(
+      0,
+      8
+    )}_${name}`,
+  };
+};

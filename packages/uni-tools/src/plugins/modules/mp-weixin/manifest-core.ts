@@ -24,7 +24,7 @@ export const checkDownloadFilesIsExpired = (manifestList: IManifestJson[]) => {
     const targetPath = getNodeModulesEnvAppCodeFilePath(conf, MANIFEST_NAME);
     const oldJson = uniReadFile(targetPath);
 
-    const flag = !oldJson ||oldJson?.hash !== conf.hash;
+    const flag = !oldJson || oldJson?.hash !== conf.hash;
     return flag;
   });
 };
@@ -34,7 +34,7 @@ export const createManifestManager = (): TGenreManifestJson => {
   const row: IManifestJson = {
     code: "",
     mode: "",
-    cdn: '',
+    cdn: "",
     hash: "",
     publicPath: "",
     appCode: "",
@@ -46,24 +46,27 @@ export const createManifestManager = (): TGenreManifestJson => {
     get value() {
       return row;
     },
-    setFiles(outDir: string, all: string[]) {
-      const files = all.map((i) => {
-        const filePath = path.resolve(outDir, i);
-        const content = fs.readFileSync(filePath, "utf-8");
-        const contentHash = generateSHA256(content);
-        return {
-          fileName: i,
-          fileUrl: `${contentHash.slice(0, 8)}_${path.basename(i)}`,
-        };
-      });
+    setFiles(files: IManifestJson["files"]) {
+      // const files = all.map((i) => {
+      //   const filePath = path.resolve(outDir, i);
+      //   const content = fs.readFileSync(filePath, "utf-8");
+      //   const contentHash = generateSHA256(content).slice(0, 8);
+      //   const dirName = path.dirname(i);
+      //   const fileName = path.basename(i)
+      //   const suffixName = dirName === "." ? "" : `${dirName}/`;
+      //   return {
+      //     fileName: i,
+      //     fileUrl: `${suffixName}${contentHash}_${fileName}`,
+      //   };
+      // });
       row.files = files;
     },
     setPagesJson(pagesJson: IManifestJson["pagesJson"]) {
       row.pagesJson = pagesJson;
     },
     saveFile(outDir: string) {
-      const files = row.files.filter((i) => i.fileName !== MANIFEST_NAME);
-      row.hash = generateSHA256(JSON.stringify({ ...row, files }));
+      row.files = row.files.filter((i) => i.fileName !== MANIFEST_NAME);
+      row.hash = generateSHA256(JSON.stringify({ ...row, files: row.files }));
       const filePath = path.resolve(outDir, MANIFEST_NAME);
       writeFiles(filePath, JSON.stringify(row, null, 2));
     },
@@ -72,7 +75,7 @@ export const createManifestManager = (): TGenreManifestJson => {
       const env = formatCliCommandConfig(mode);
       const mfeJson = getMfeJson();
 
-      row.cdn = env.cdn
+      row.cdn = env.cdn;
       row.mode = mode;
       row.code = env.code;
       row.appCode = env.appCode;
