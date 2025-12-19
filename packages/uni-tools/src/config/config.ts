@@ -35,7 +35,7 @@ export const TEMP_FILE_PATH = path.join(
 );
 
 // 发布目录路径
-export const PUBLISH_PATH = "dist/publish";
+export const PUBLISH_PATH = path.join(process.cwd(), "dist/publish");
 
 // Manifest 文件名
 export const MANIFEST_NAME = "mfe-uni-manifest.json";

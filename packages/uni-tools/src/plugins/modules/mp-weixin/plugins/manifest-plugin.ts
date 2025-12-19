@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { MANIFEST_NAME, TEMP_FILE_PATH } from "@/config/config";
+import { PUBLISH_PATH, MANIFEST_NAME, TEMP_FILE_PATH } from "@/config/config";
 import { TGenreManifestJson } from "@/config/types";
 import { getPagesJson, initPrePagesJson } from "../uni-pages";
 import { genreFileInfoRow, walkDir } from "@/utils/utils";
@@ -61,6 +61,17 @@ class CollectFiles {
         console.log(e);
       }
     });
+    this.addManifestFile()
+  }
+  copyFilesToPublishDir(){
+    this.collectedBuildFiles.forEach(({ fileName, fileUrl }) => {
+      const sourcePath = path.resolve(this.outDir, fileName);
+      const targetPath = path.resolve(PUBLISH_PATH, fileUrl);
+      copyFilesByTargetPath(
+        sourcePath,
+        targetPath
+      );
+    });
   }
 }
 
@@ -100,8 +111,10 @@ export const createManifestPlugin = (
           );
       collectFiles.collectCopyFiles();
       manifestJson.setFiles(collectFiles.collectedBuildFiles);
-
       manifestJson.saveFile(sourcePath);
+      setTimeout(() => {
+        collectFiles.copyFilesToPublishDir();
+      }, 0);
     },
   };
 };

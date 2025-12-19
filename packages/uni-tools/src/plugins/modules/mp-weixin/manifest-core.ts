@@ -65,8 +65,8 @@ export const createManifestManager = (): TGenreManifestJson => {
       row.pagesJson = pagesJson;
     },
     saveFile(outDir: string) {
-      row.files = row.files.filter((i) => i.fileName !== MANIFEST_NAME);
-      row.hash = generateSHA256(JSON.stringify({ ...row, files: row.files }));
+      // const files = row.files.filter((i) => i.fileName !== MANIFEST_NAME);
+      row.hash = generateSHA256(JSON.stringify({ ...row }));
       const filePath = path.resolve(outDir, MANIFEST_NAME);
       writeFiles(filePath, JSON.stringify(row, null, 2));
     },
