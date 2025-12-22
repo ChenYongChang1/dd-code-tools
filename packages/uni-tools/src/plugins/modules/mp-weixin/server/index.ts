@@ -11,7 +11,7 @@ export class WsServer {
       typeof import("http").IncomingMessage,
       typeof import("http").ServerResponse
     >;
-    start: () => void;
+    start: (type: string) => void;
   };
   clientMap: Map<string, WebSocket>;
   constructor(
@@ -40,7 +40,7 @@ export class WsServer {
     });
     this.onMessage(this.handleMessage);
     this.onConnection();
-    this.httpServer.start();
+    this.httpServer.start('ws');
   }
   onMessage(callback?: (opt: { type: E_WS_TYPE; data: any }) => void) {
     // WebSocketServer 不支持直接监听 message，必须在 connection 后的 socket 上监听

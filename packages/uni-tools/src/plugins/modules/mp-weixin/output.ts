@@ -15,30 +15,31 @@ const getMainProcess = async () => {
   console.log(result, "mainProcess");
   return result;
 };
-const getMainProcessLoop = async ()=>{
-  try{
+const getMainProcessLoop = async () => {
+  try {
     const mainProcess = await getMainProcess();
     return mainProcess;
-  }catch(e){}
-  return new Promise((resolve)=> {
-    setTimeout(()=>{
+  } catch (e) {}
+  return new Promise((resolve) => {
+    setTimeout(() => {
       resolve(getMainProcessLoop());
     }, 1000);
   });
-}
+};
 export const resetOutDir = async (
   currentManifestJson: TGenreManifestJson,
   config: UserConfig
 ) => {
   const childBuild = process.env.MFE_TARGET_DIR === "root";
-  if (!currentManifestJson.value.isRoot && childBuild) {
+  const currentManifest = currentManifestJson.value;
+  if (!currentManifest.isRoot && childBuild && !currentManifest.isServe) {
     const mainProcess = await getMainProcessLoop();
     // mainProcess.UNI_OUTPUT_DIR
-    config.build!.outDir = `${mainProcess.UNI_OUTPUT_DIR}/${currentManifestJson.value.appCode}`
+    config.build!.outDir = `${mainProcess.UNI_OUTPUT_DIR}/${currentManifest.appCode}`;
     // console.log(mainProcess.UNI_OUTPUT_DIR, "mainProcessmainProcessmainProcess");
   }
 
-  const exp = new RegExp(`/(${currentManifestJson.value.appCode})/?`);
+  const exp = new RegExp(`/(${currentManifest.appCode})/?`);
   // http://localhost:3560/__mfe__http__/root-path
   // if()
   process.env.MFE_SOURCE_OUTPUT_DIR = config.build!.outDir;
@@ -48,6 +49,11 @@ export const resetOutDir = async (
   ).replace(/\/$/, "");
   // if (!currentManifestJson.value.isRoot)
   process.env.UNI_OUTPUT_DIR = process.env.MFE_ROOT_OUTPUT_DIR;
+  // console.log({
+  //   UNI_OUTPUT_DIR: process.env.UNI_OUTPUT_DIR,
+  //   outDir: process.env.MFE_SOURCE_OUTPUT_DIR,
+  // });
+
   // if (currentManifestJson.value.isRoot) {
   //   writeFiles(MFE_MAIN_OUTDIT_FILEPATH, process.env.UNI_OUTPUT_DIR)
   // } else {

@@ -1,7 +1,7 @@
 import express from "express";
 import http from "http";
 import cors from "cors";
-import { HTTP_PATH, WS_PORT } from "@/config/config";
+import { E_WS_TYPE, HTTP_PATH, WS_PORT } from "@/config/config";
 
 let app: express | null = null;
 export const createHttpServer = () => {
@@ -14,9 +14,12 @@ export const createHttpServer = () => {
   app.use(cors({ origin: "*" }));
   return {
     server,
-    start: () => {
+    start: (type: string) => {
+      const originKey = type || "http";
       server.listen(WS_PORT, () => {
-        console.log(`[uni-http] http://localhost:${WS_PORT}${HTTP_PATH}`);
+        console.log(
+          `[uni-${originKey}] ${originKey}://localhost:${WS_PORT}${HTTP_PATH}`
+        );
       });
     },
   };
