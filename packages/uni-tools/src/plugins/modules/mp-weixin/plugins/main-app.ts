@@ -9,6 +9,7 @@ import {
 import {
   checkIsRootManifest,
   E_WS_TYPE,
+  EBuildMode,
   getMainAppJSon,
   getMainAppJsonPath,
   MANIFEST_NAME,
@@ -203,6 +204,7 @@ export const createMainAppPlugin = (
   const serverPlugin: Plugin & IMainAppFilePlugin = {
     name: "@dd-code:main-app:serve",
     async config() {
+      if (process.env.MFE_BUILD_MODE === EBuildMode.BUILD) return;
       if (manifestJson.value.isRoot) {
         mfeServer = createMainAppServer(manifestJson);
       } else {
@@ -212,6 +214,7 @@ export const createMainAppPlugin = (
       }
     },
     closeBundle() {
+      if (process.env.MFE_BUILD_MODE === EBuildMode.BUILD) return;
       if (!manifestJson.value.isRoot) {
         serverPlugin.initWatchChange();
         fn?.();

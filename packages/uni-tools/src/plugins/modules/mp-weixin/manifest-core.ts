@@ -20,13 +20,14 @@ import { IManifestJson, TGenreManifestJson } from "@/config/types";
 import cdn from "@/cdn";
 
 export const checkDownloadFilesIsExpired = (manifestList: IManifestJson[]) => {
-  return manifestList.filter((conf) => {
+  const filterList = manifestList.filter((conf) => {
     const targetPath = getNodeModulesEnvAppCodeFilePath(conf, MANIFEST_NAME);
     const oldJson = uniReadFile(targetPath);
 
     const flag = !oldJson || oldJson?.hash !== conf.hash;
     return flag;
   });
+  return filterList;
 };
 
 export const createManifestManager = (): TGenreManifestJson => {

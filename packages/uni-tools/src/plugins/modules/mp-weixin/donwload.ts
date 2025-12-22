@@ -15,11 +15,18 @@ import path from "path";
 import { IManifestJson } from "@/config/types";
 
 export const getDownloadedFilePath = (conf) => {
-  return path.resolve(SAVE_CDN_FILE_PATH, conf.env, conf.appCode);
+  if(!conf.mode && !conf.env) {
+    throw new Error(`appCode: ${conf.appCode} mode or env is required`);
+  }
+  if(!conf.appCode) {
+    throw new Error(`appCode is required`);
+  }
+  return path.resolve(SAVE_CDN_FILE_PATH, conf.mode || conf.env, conf.appCode);
 };
 
 export const getNodeModulesEnvAppCodeFilePath = (conf, fileName) => {
-  return path.resolve(getDownloadedFilePath(conf), fileName);
+  const savePath = getDownloadedFilePath(conf);
+  return path.resolve(savePath, fileName);
 };
 
 /**

@@ -46,7 +46,12 @@ export const BASE_APP_CODE_LIST = ["login"];
 // 基础页面应用代码列表（会移植到 pages 的 appCode）
 export const BASE_PAGE_APP_CODE = ["login"];
 
-export const ROOT_APP_CODE = "main"; //"__MFE_APP_ROOT__";
+export const ROOT_APP_CODE = "__MFE_APP_ROOT__";
+
+export enum EBuildMode {
+  BUILD = 'build',
+  SERVE = 'serve',
+}
 
 // Manifest CDN 目录 URL 模板
 export const MANIFEST_CND_DIR_URL =

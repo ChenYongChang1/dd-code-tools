@@ -1,5 +1,5 @@
 import { program } from "@dd-code/shared";
-import { formatCliCommandConfig } from "./config/config";
+import { EBuildMode, formatCliCommandConfig } from "./config/config";
 import { excuteUniCommand } from "./commond";
 import { pushDistToCdn } from "./commond/push";
 
@@ -21,6 +21,7 @@ pushCdn.option("--mode <mode>", "模式", "dev").action(({ mode }) => {
 });
 
 addUniOptions(dev).action(({ mode, p: platform }) => {
+  process.env.MFE_BUILD_MODE = EBuildMode.SERVE
   const { isRoot, appCode } = formatCliCommandConfig(mode);
 
   switch (platform) {
@@ -41,6 +42,24 @@ addUniOptions(dev).action(({ mode, p: platform }) => {
   // console.log(JSON.stringify({ mode, platform, mfeJson }), "-111-------------");
 });
 
-addUniOptions(build).action((opt) => {});
+addUniOptions(build).action(({ mode, p: platform }) => {
+  process.env.MFE_BUILD_MODE = EBuildMode.BUILD;
+  const { isRoot, appCode } = formatCliCommandConfig(mode);
+
+  switch (platform) {
+    case "h5":
+      excuteUniCommand(`uni build -p ${platform} --mode ${mode}`);
+      break;
+    case "mp-weixin":
+      excuteUniCommand(`uni build -p ${platform} --mode ${mode}`, {
+        isRoot,
+        appCode,
+      });
+      break;
+    default:
+      excuteUniCommand(`uni build -p ${platform} --mode ${mode}`);
+      break;
+  }
+});
 
 program.parseAsync(process.argv);
