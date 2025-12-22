@@ -11,9 +11,9 @@ export const createMpWeixinUniPlugin = (options: Record<string, any> = {}) => {
     {
       name: "@dd-code:genre-params",
       enforce: "pre",
-      config(config) {
+      async config(config) {
         currentManifestJson.setEnv(config.mode);
-        resetOutDir(currentManifestJson, config as UserConfig);
+        await resetOutDir(currentManifestJson, config as UserConfig);
       },
     },
     createAppsAssetsPlugin(currentManifestJson),

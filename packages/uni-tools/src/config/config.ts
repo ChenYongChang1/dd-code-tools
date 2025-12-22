@@ -12,13 +12,13 @@ export interface IMfeJson {
   platform: EPlaform;
   apps: {
     appCode: string;
-    git?: string;
+    repoUrl?: string;
     local?: boolean;
   }[];
 }
 
 // 项目 Git 子模块路径
-export const PROJECT_GIT_PATH = "src/sub";
+export const PROJECT_GIT_PATH = "src/subtree";
 
 // 基础项目文件列表
 export const BASE_PROJECT_FILES = ["project.config.json"];
@@ -27,6 +27,14 @@ export const BASE_PROJECT_FILES = ["project.config.json"];
 export const SAVE_CDN_FILE_PATH = path.join(
   process.cwd(),
   "node_modules/@dd-code/uni-files"
+);
+export const MFE_MAIN_OUTDIT_FILEPATH = path.join(
+  process.cwd(),
+  "node_modules/@dd-code/__main-pwd.txt"
+);
+export const SERVE_MPWEIXIN_MANIFEST = path.join(
+  process.cwd(),
+  "node_modules/@dd-code/manifest-list.json"
 );
 
 export const TEMP_FILE_PATH = path.join(
@@ -49,8 +57,8 @@ export const BASE_PAGE_APP_CODE = ["login"];
 export const ROOT_APP_CODE = "__MFE_APP_ROOT__";
 
 export enum EBuildMode {
-  BUILD = 'build',
-  SERVE = 'serve',
+  BUILD = "build",
+  SERVE = "serve",
 }
 
 // Manifest CDN 目录 URL 模板
@@ -146,6 +154,7 @@ export const formatCliCommandConfig = (mode) => {
     code: viteEnv.MFE_UNI_CODE,
     mode,
     cdn: viteEnv.MFE_CDN_HOST,
+    serve: viteEnv.MFE_UNI_SERVE, // 是否开启 serve 功能
   };
 };
 
@@ -155,13 +164,14 @@ export const checkIsRootManifest = (manifest: IManifestJson) => {
 
 export const WS_PORT = 3560;
 export const WS_PATH = "/__mfe__ws__";
+export const HTTP_PATH = "/__mfe__http__";
 
 export enum E_WS_TYPE {
   INIT = "init_files",
   CHANGE = "change_files",
 }
 
-export const getMainAppJSon = (mode, appCode) => {
+export const getNodeModuleMainAppJSon = (mode, appCode) => {
   return path.join(
     SAVE_CDN_FILE_PATH,
     mode || "dev",

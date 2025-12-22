@@ -6,6 +6,7 @@ import { getPagesJson, initPrePagesJson } from "../uni-pages";
 import { genreFileInfoRow, walkDir } from "@/utils/utils";
 import { addUniCopyPluginHook, copyFilesByTargetPath } from "../copy";
 import { Plugin } from "vite";
+// import { addRunningAppToSave } from "../running-core";
 
 class CollectFiles {
   public callbackFiles: { abs: string; filePath: string }[] = [];
@@ -47,7 +48,7 @@ class CollectFiles {
           const files = walkDir(abs);
           files.forEach((file) => {
             const absFilePath = path.resolve(abs, file);
-            const fullFileName = path.join(filePath, file)
+            const fullFileName = path.join(filePath, file);
             this.emitted.set(
               fullFileName,
               genreFileInfoRow({
@@ -61,16 +62,13 @@ class CollectFiles {
         console.log(e);
       }
     });
-    this.addManifestFile()
+    this.addManifestFile();
   }
-  copyFilesToPublishDir(){
+  copyFilesToPublishDir() {
     this.collectedBuildFiles.forEach(({ fileName, fileUrl }) => {
       const sourcePath = path.resolve(this.outDir, fileName);
       const targetPath = path.resolve(PUBLISH_PATH, fileUrl);
-      copyFilesByTargetPath(
-        sourcePath,
-        targetPath
-      );
+      copyFilesByTargetPath(sourcePath, targetPath);
     });
   }
 }
@@ -109,9 +107,13 @@ export const createManifestPlugin = (
             process.env.MFE_ROOT_OUTPUT_DIR!,
             manifestJson.value.appCode
           );
+      const filePath = path.resolve(sourcePath, MANIFEST_NAME);
       collectFiles.collectCopyFiles();
       manifestJson.setFiles(collectFiles.collectedBuildFiles);
-      manifestJson.saveFile(sourcePath);
+      manifestJson.saveFile(filePath);
+      // console.log({ filePath }, "sourcePath");
+      // addRunningAppToSave(manifestJson.value.appCode, filePath);
+
       setTimeout(() => {
         collectFiles.copyFilesToPublishDir();
       }, 0);

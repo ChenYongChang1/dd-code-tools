@@ -14,6 +14,7 @@ import {
   IMfeJson,
   MANIFEST_CND_DIR_URL,
   MANIFEST_NAME,
+  SERVE_MPWEIXIN_MANIFEST,
   TEMP_FILE_PATH,
 } from "@/config/config";
 import { IManifestJson, TGenreManifestJson } from "@/config/types";
@@ -65,11 +66,11 @@ export const createManifestManager = (): TGenreManifestJson => {
     setPagesJson(pagesJson: IManifestJson["pagesJson"]) {
       row.pagesJson = pagesJson;
     },
-    saveFile(outDir: string) {
+    saveFile(filePath: string) {
       // const files = row.files.filter((i) => i.fileName !== MANIFEST_NAME);
-      row.hash = generateSHA256(JSON.stringify({ ...row }));
-      const filePath = path.resolve(outDir, MANIFEST_NAME);
-      writeFiles(filePath, JSON.stringify(row, null, 2));
+      const newManifest = { ...row, isServe: undefined };
+      newManifest.hash = generateSHA256(JSON.stringify({ ...newManifest }));
+      writeFiles(filePath, JSON.stringify(newManifest, null, 2));
     },
     setEnv(mode) {
       // const env = loadViteConfig(mode);
@@ -85,6 +86,7 @@ export const createManifestManager = (): TGenreManifestJson => {
         row.isRoot = true;
         row.apps = mfeJson.apps;
       }
+      row.isServe = env.serve;
       row.publicPath = getManifestCdnDirUrl(row);
     },
     dependencies: [],

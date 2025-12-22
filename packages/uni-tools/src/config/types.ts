@@ -10,6 +10,7 @@ export interface IManifestJson {
   platform: string;
   publicPath: string;
   apps?: IMfeJson["apps"];
+  isServe?: boolean;
   pagesJson: {
     pages?: { path: string; style: Record<string, string> }[];
     [k: string]: any;

@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import crypto, { BinaryToTextEncoding } from "crypto";
+import chokidar, { ChokidarOptions } from "chokidar";
 /**
  * 通过URL获取文件内容
  * 支持JSON和文本文件的自动解析
@@ -43,6 +44,23 @@ export function uniReadFile(filaPath) {
     // console.log(e);
   }
   return "";
+}
+
+/**
+ * 读取文件内容
+ * 支持JSON文件的自动解析
+ * @param {string} filaPath - 文件路径
+ * @returns {string|Object} 返回文件内容，JSON文件返回对象，其他返回字符串
+ */
+export function uniFsReadJSONFile(filaPath) {
+  try {
+    const res = fs.readFileSync(filaPath, "utf-8");
+    return JSON.parse(res);
+  } catch (e) {
+    // console.error(`${filaPath} notfound`);
+    // console.log(e);
+  }
+  return {};
 }
 
 /**
@@ -162,4 +180,18 @@ export const genreFileInfoRow = (row: { fileName: string; source: string }) => {
       8
     )}_${name}`,
   };
+};
+
+export const createFileWatcher = (filePath: string | string[], opt?: ChokidarOptions) => {
+  const watcher = chokidar.watch(filePath, {
+    persistent: true,
+    ignoreInitial: true,
+    usePolling: true,
+    interval: 100,
+    awaitWriteFinish: { stabilityThreshold: 200, pollInterval: 100 },
+    followSymlinks: true,
+    depth: 99,
+    ...opt,
+  });
+  return watcher;
 };

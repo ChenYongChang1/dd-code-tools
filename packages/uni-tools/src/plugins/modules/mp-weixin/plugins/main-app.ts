@@ -1,4 +1,3 @@
-import chokidar from "chokidar";
 import { Plugin } from "vite";
 import path from "path";
 import {
@@ -10,23 +9,24 @@ import {
   checkIsRootManifest,
   E_WS_TYPE,
   EBuildMode,
-  getMainAppJSon,
   getMainAppJsonPath,
+  getNodeModuleMainAppJSon,
   MANIFEST_NAME,
   ROOT_APP_CODE,
 } from "@/config/config";
 import {
   checkAndgenreDir,
+  createFileWatcher,
+  uniFsReadJSONFile,
   uniReadFile,
   writeFiles,
 } from "@/utils/utils";
 import { getPagesJson } from "../uni-pages";
 import { WsServer, WsClientServer } from "../server";
 import { copyFilesByTargetPath } from "../copy";
+import { getAppsManifestList } from "../running-core";
+import { createHttpServer } from "../server/http-server";
 
-/**
- * 过滤 Manifest 列表并获取主应用 app.json 路径
- */
 const filterManifestJsonListAndMainPageJson = (
   manifestJsonList: IManifestJson[]
 ) => {
@@ -37,10 +37,10 @@ const filterManifestJsonListAndMainPageJson = (
   };
 };
 
-/**
- * 根据 Manifest 列表渲染 app.json 的 subPackages
- */
-export const renderPagesJsonByArray = (appPages: IManifestJson[], pageJson: any) => {
+export const renderPagesJsonByArray = (
+  appPages: IManifestJson[],
+  pageJson: any
+) => {
   for (const app of appPages) {
     const { pages = [] } = getPagesJson(
       JSON.stringify(app?.pagesJson || {}),
@@ -52,12 +52,13 @@ export const renderPagesJsonByArray = (appPages: IManifestJson[], pageJson: any)
       pages: [...pages],
     };
 
-    // 移除旧的 subPackage 配置并添加新的
     pageJson.subPackages = pageJson.subPackages.filter(
       (i: any) => i.root !== currentTemp.root
     );
     pageJson.subPackages.push(currentTemp);
-    pageJson.subPackages = pageJson.subPackages.filter((i: any) => i.pages.length);
+    pageJson.subPackages = pageJson.subPackages.filter(
+      (i: any) => i.pages.length
+    );
   }
 
   if (!pageJson.tabBar) {
@@ -66,9 +67,6 @@ export const renderPagesJsonByArray = (appPages: IManifestJson[], pageJson: any)
   return pageJson;
 };
 
-/**
- * 生成完整的主应用 app.json
- */
 export const genreFullMainAppJsonByManifestList = (
   appJson: Record<string, any>,
   manifestList: IManifestJson[]
@@ -76,68 +74,39 @@ export const genreFullMainAppJsonByManifestList = (
   return renderPagesJsonByArray(manifestList, appJson);
 };
 
-/**
- * 监听 dist 目录变化并同步文件
- */
-const watchDistChangeAndSyncFile = (mainPwd: string, onReady: () => void, onChange?: (data: any) => void) => {
-  const root = process.env.MFE_SOURCE_OUTPUT_DIR;
-  if (!root) {
-    console.error("[Watcher] MFE_SOURCE_OUTPUT_DIR not set");
-    return;
-  }
-
-  const filePath = path.resolve(root);
-  // 确保目录存在，避免监听失效
-  checkAndgenreDir(filePath);
-
-  // 监听父级目录，过滤出目标目录下的变化，解决目录重建导致监听失效的问题
-  const parentDir = path.dirname(filePath);
-  const watcher = chokidar.watch(parentDir, {
-    persistent: true,
-    ignoreInitial: true,
-    usePolling: true,
-    interval: 100,
-    awaitWriteFinish: { stabilityThreshold: 200, pollInterval: 100 },
-    followSymlinks: true,
-    depth: 99
-  });
-
-  const isTargetFile = (p: string) => {
-    return p.startsWith(filePath + path.sep) || p === filePath;
-  };
-
-  watcher.on("ready", onReady);
-
-  ["add", "change", "unlink"].forEach((evt) => {
-    // @ts-ignore
-    watcher.on(evt, (p: string) => {
-      if (!isTargetFile(p)) return;
-
-      const rel = path.relative(filePath, p);
-      const sourcePath = p;
-      const targetPath = path.join(mainPwd, rel);
-
-      // 仅文件内容变化才执行复制操作，目录变化由构建工具处理
-      if (["add", "change"].includes(evt)) {
-        copyFilesByTargetPath(sourcePath, targetPath);
-      }
-      onChange?.({ type: evt, p, sourcePath, targetPath });
+class DistWatcher {
+  start(mainPwd: string, onReady: () => void, onChange?: (data: any) => void) {
+    const root = process.env.MFE_SOURCE_OUTPUT_DIR;
+    if (!root) return;
+    const filePath = path.resolve(root);
+    checkAndgenreDir(filePath);
+    const parentDir = path.dirname(filePath);
+    const watcher = createFileWatcher(parentDir);
+    const isTargetFile = (p: string) =>
+      p.startsWith(filePath + path.sep) || p === filePath;
+    watcher.on("ready", onReady);
+    ["add", "change", "unlink"].forEach((evt) => {
+      // @ts-ignore
+      watcher.on(evt, (p: string) => {
+        if (!isTargetFile(p)) return;
+        const rel = path.relative(filePath, p);
+        const sourcePath = p;
+        const targetPath = path.join(mainPwd, rel);
+        if (["add", "change"].includes(evt)) {
+          copyFilesByTargetPath(sourcePath, targetPath);
+        }
+        onChange?.({ type: evt, p, sourcePath, targetPath });
+      });
     });
-  });
+  }
+}
 
-  watcher.on('error', (err) => console.error('[Watcher] error:', err));
-};
-
-/**
- * 生成新的 app.json 文件
- */
 const genreNewAppJson = (
   outputPageJsonPath: string,
-  mainAppJsonPath: string,
+  appJson: Record<string, any>,
   manifestList: IManifestJson[]
 ) => {
   try {
-    const appJson = uniReadFile(mainAppJsonPath);
     const newAppJSon = genreFullMainAppJsonByManifestList(
       { subPackages: [], ...appJson },
       manifestList
@@ -148,9 +117,6 @@ const genreNewAppJson = (
   }
 };
 
-/**
- * 处理主应用服务端逻辑
- */
 const createMainAppServer = (manifestJson: TGenreManifestJson) => {
   const mfeServer = WsServer.getInstance((opt) => {
     const { type, data } = opt;
@@ -164,9 +130,8 @@ const createMainAppServer = (manifestJson: TGenreManifestJson) => {
 
       try {
         const manifestChildJson = uniReadFile(manifestPath);
-        genreNewAppJson(outputPageJsonPath, outputPageJsonPath, [
-          manifestChildJson,
-        ]);
+        const mainAppJson = uniReadFile(outputPageJsonPath);
+        genreNewAppJson(outputPageJsonPath, mainAppJson, [manifestChildJson]);
       } catch (e) {
         console.error("[Server] Handle child change failed:", e);
       }
@@ -176,10 +141,10 @@ const createMainAppServer = (manifestJson: TGenreManifestJson) => {
   return mfeServer;
 };
 
-/**
- * 处理子应用客户端逻辑
- */
-const createMainAppClient = (manifestJson: TGenreManifestJson, onInit: (data: any) => void) => {
+const createMainAppClient = (
+  manifestJson: TGenreManifestJson,
+  onInit: (data: any) => void
+) => {
   const client = WsClientServer.getInstance((opt) => {
     if (opt.type === E_WS_TYPE.INIT) {
       onInit(opt.data);
@@ -189,9 +154,6 @@ const createMainAppClient = (manifestJson: TGenreManifestJson, onInit: (data: an
   return client;
 };
 
-/**
- * 创建主应用插件
- */
 export const createMainAppPlugin = (
   manifestJson: TGenreManifestJson
 ): Plugin[] => {
@@ -201,10 +163,38 @@ export const createMainAppPlugin = (
   let mfeServer: WsServer;
   let fn: (() => void) | null = null;
 
+  const isBuild = () => process.env.MFE_BUILD_MODE === EBuildMode.BUILD;
+  const isServe = () => manifestJson.value.isServe;
+  const isStartServer = () => {
+    if (isBuild()) return false;
+    return isServe();
+  };
+
+  let watchFile: null | (() => void) = () => {
+    const allManifest = getAppsManifestList(manifestJson.value.mode);
+    const watchFileList = allManifest.map((item) => item.filePath);
+    const watcher = createFileWatcher(watchFileList);
+    watcher.on("change", (path) => {
+      const manifestJson = uniFsReadJSONFile(path);
+      const outputPageJsonPath = getMainAppJsonPath();
+      const mainAppJson = uniFsReadJSONFile(outputPageJsonPath);
+      genreNewAppJson(outputPageJsonPath, mainAppJson, [manifestJson]);
+    });
+  };
+
+  const distWatcher = new DistWatcher();
   const serverPlugin: Plugin & IMainAppFilePlugin = {
     name: "@dd-code:main-app:serve",
     async config() {
-      if (process.env.MFE_BUILD_MODE === EBuildMode.BUILD) return;
+      const isServe = isStartServer();
+      if (!isServe) {
+        if (!isBuild() && manifestJson.value.isRoot) {
+          const { server, start } = createHttpServer();
+          start();
+        }
+
+        return;
+      }
       if (manifestJson.value.isRoot) {
         mfeServer = createMainAppServer(manifestJson);
       } else {
@@ -214,7 +204,9 @@ export const createMainAppPlugin = (
       }
     },
     closeBundle() {
-      if (process.env.MFE_BUILD_MODE === EBuildMode.BUILD) return;
+      const isServe = isStartServer();
+
+      if (!isServe) return;
       if (!manifestJson.value.isRoot) {
         serverPlugin.initWatchChange();
         fn?.();
@@ -223,11 +215,10 @@ export const createMainAppPlugin = (
     },
     initWatchChange() {
       if (isWatcherReady) return;
-      watchDistChangeAndSyncFile(
+      distWatcher.start(
         mainPwd,
         () => {
           isWatcherReady = true;
-          // console.log(`[Watcher] Ready watching: ${process.env.MFE_SOURCE_OUTPUT_DIR}`);
         },
         (change) => {
           fn = () =>
@@ -253,6 +244,16 @@ export const createMainAppPlugin = (
   return [
     serverPlugin,
     {
+      name: "@dd-code:main-app:watch",
+      async closeBundle() {
+        if (isBuild()) return;
+        if (isServe()) return;
+        // if (!isServe) return;
+        watchFile?.();
+        watchFile = null;
+      },
+    },
+    {
       name: "@dd-code:main-app",
       enforce: "post",
       async closeBundle() {
@@ -262,12 +263,12 @@ export const createMainAppPlugin = (
             manifestJson.value,
           ]);
 
-        const mainAppJsonPath = getMainAppJSon(
-          manifestJson.value.mode,
-          ROOT_APP_CODE
-        );
+        const mainAppJsonPath = !manifestJson.value.isRoot
+          ? getNodeModuleMainAppJSon(manifestJson.value.mode, ROOT_APP_CODE)
+          : getMainAppJsonPath();
+        const mainAppJson = uniReadFile(mainAppJsonPath);
 
-        genreNewAppJson(outputPageJsonPath, mainAppJsonPath, manifestList);
+        genreNewAppJson(outputPageJsonPath, mainAppJson, manifestList);
       },
     },
   ];

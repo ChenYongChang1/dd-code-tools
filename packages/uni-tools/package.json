@@ -17,7 +17,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@dd-code/shared": "workspace:*"
+    "@dd-code/shared": "workspace:*",
+    "inquirer": "^12.6.3"
   },
   "peerDependencies": {
     "chalk": ">=4.1.2",
@@ -44,10 +45,12 @@
     "cors": "^2.8.5",
     "express": "^5.2.1",
     "fs-extra": "^11.3.2",
+    "inquirer": "^12.6.3",
     "rollup": "^4.52.0",
     "rollup-plugin-dts": "^6.2.3",
     "tslib": "^2.8.1",
     "typescript": "^5.9.2",
+    "vite": "6.0.6",
     "ws": "^8.18.3"
   },
   "keywords": [

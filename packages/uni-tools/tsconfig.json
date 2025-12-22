@@ -11,6 +11,9 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
+    // "target": "ES2020",
+    // "module": "ESNext",
+    // "moduleResolution": "node",
     "paths": {
       "@/*": ["src/*"]
     }

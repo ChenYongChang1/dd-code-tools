@@ -24,6 +24,7 @@ const external = [
   "ws",
   "express",
   "commander",
+  "inquirer"
 ];
 
 export default [
@@ -34,6 +35,12 @@ export default [
       {
         file: "dist/cli.js",
         format: "cjs",
+        inlineDynamicImports: true, // 内联动态导入
+        banner: "#!/usr/bin/env node",
+      },
+      {
+        file: "dist/cli.mjs.js",
+        format: "es",
         inlineDynamicImports: true, // 内联动态导入
         banner: "#!/usr/bin/env node",
       },

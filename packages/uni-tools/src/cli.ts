@@ -2,11 +2,13 @@ import { program } from "@dd-code/shared";
 import { EBuildMode, formatCliCommandConfig } from "./config/config";
 import { excuteUniCommand } from "./commond";
 import { pushDistToCdn } from "./commond/push";
+import { fetchAppsRepo } from "./plugins/modules/mp-weixin/gitlib";
 
 const addUniOptions = (program) => {
   return program
     .option("-p <platform>", "平台", "h5")
-    .option("--mode <mode>", "模式", "development");
+    .option("--mode <mode>", "模式", "development")
+    .option("--b <buildDir>", "目标路径", "");
 };
 
 const dev = program
@@ -14,14 +16,18 @@ const dev = program
   .command("serve")
   .description("uni 工具方法");
 const build = program.command("build").description("构建 uni 项目");
-const pushCdn = program.command("push-cdn").description("推送 uni 项目到 cdn");
+// const pushCdn = program.command("push-cdn").description("推送 uni 项目到 cdn");
+const fetchGit = program.command("fetch").description("拉取 uni 项目到本地");
 
-pushCdn.option("--mode <mode>", "模式", "dev").action(({ mode }) => {
-  pushDistToCdn(mode);
+fetchGit.action(async () => {
+  await fetchAppsRepo()
 });
+// pushCdn.option("--mode <mode>", "模式", "dev").action(({ mode }) => {
+//   pushDistToCdn(mode);
+// });
 
-addUniOptions(dev).action(({ mode, p: platform }) => {
-  process.env.MFE_BUILD_MODE = EBuildMode.SERVE
+addUniOptions(dev).action(({ mode, p: platform, b }) => {
+  process.env.MFE_BUILD_MODE = EBuildMode.SERVE;
   const { isRoot, appCode } = formatCliCommandConfig(mode);
 
   switch (platform) {
@@ -32,6 +38,7 @@ addUniOptions(dev).action(({ mode, p: platform }) => {
       excuteUniCommand(`uni -p ${platform} --mode ${mode}`, {
         isRoot,
         appCode,
+        buildDir: b,
       });
       break;
     default:
