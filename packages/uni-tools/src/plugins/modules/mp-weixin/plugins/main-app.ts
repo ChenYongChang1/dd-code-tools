@@ -1,10 +1,22 @@
-import { Plugin } from "vite";
 import path from "path";
+import { Plugin } from "vite";
+import { IManifestJson, TGenreManifestJson } from "@/config/types";
 import {
-  IMainAppFilePlugin,
-  IManifestJson,
-  TGenreManifestJson,
-} from "@/config/types";
+  checkIsBuildInChild,
+  createFileWatcher,
+  uniFsReadJSONFile,
+  uniReadFile,
+} from "@/utils/utils";
+import { copyFilesByTargetPath } from "@/utils/copy";
+import { genreNewAppJson } from "@/plugins/modules/mp-weixin/core/app-json";
+import {
+  getAppsManifestList,
+  findLocalSubApps,
+  startLocalSubApps,
+  startDistWatcher,
+} from "@/plugins/modules/mp-weixin/core/runtime";
+import { WsServer, WsClientServer } from "../server";
+import { createHttpServer } from "../server/http-server";
 import {
   checkIsRootManifest,
   E_WS_TYPE,
@@ -14,19 +26,6 @@ import {
   MANIFEST_NAME,
   ROOT_APP_CODE,
 } from "@/config/config";
-import {
-  checkAndgenreDir,
-  checkIsBuildInChild,
-  createFileWatcher,
-  uniFsReadJSONFile,
-  uniReadFile,
-  writeFiles,
-} from "@/utils/utils";
-import { getPagesJson } from "../uni-pages";
-import { WsServer, WsClientServer } from "../server";
-import { copyFilesByTargetPath } from "../copy";
-import { getAppsManifestList } from "../running-core";
-import { createHttpServer } from "../server/http-server";
 
 const filterManifestJsonListAndMainPageJson = (
   manifestJsonList: IManifestJson[]
@@ -38,87 +37,7 @@ const filterManifestJsonListAndMainPageJson = (
   };
 };
 
-export const renderPagesJsonByArray = (
-  appPages: IManifestJson[],
-  pageJson: any
-) => {
-  for (const app of appPages) {
-    const { pages = [] } = getPagesJson(
-      JSON.stringify(app?.pagesJson || {}),
-      true
-    );
-
-    const currentTemp = {
-      root: app.appCode,
-      pages: [...pages],
-    };
-
-    pageJson.subPackages = pageJson.subPackages.filter(
-      (i: any) => i.root !== currentTemp.root
-    );
-    pageJson.subPackages.push(currentTemp);
-    pageJson.subPackages = pageJson.subPackages.filter(
-      (i: any) => i.pages.length
-    );
-  }
-
-  if (!pageJson.tabBar) {
-    delete pageJson.tabBar;
-  }
-  return pageJson;
-};
-
-export const genreFullMainAppJsonByManifestList = (
-  appJson: Record<string, any>,
-  manifestList: IManifestJson[]
-) => {
-  return renderPagesJsonByArray(manifestList, appJson);
-};
-
-class DistWatcher {
-  start(mainPwd: string, onReady: () => void, onChange?: (data: any) => void) {
-    const root = process.env.MFE_SOURCE_OUTPUT_DIR;
-    if (!root) return;
-    const filePath = path.resolve(root);
-    checkAndgenreDir(filePath);
-    const parentDir = path.dirname(filePath);
-    const watcher = createFileWatcher(parentDir);
-    const isTargetFile = (p: string) =>
-      p.startsWith(filePath + path.sep) || p === filePath;
-    watcher.on("ready", onReady);
-    ["add", "change", "unlink"].forEach((evt) => {
-      // @ts-ignore
-      watcher.on(evt, (p: string) => {
-        if (!isTargetFile(p)) return;
-        const rel = path.relative(filePath, p);
-        const sourcePath = p;
-        const targetPath = path.join(mainPwd, rel);
-        if (["add", "change"].includes(evt)) {
-          copyFilesByTargetPath(sourcePath, targetPath);
-        }
-        onChange?.({ type: evt, p, sourcePath, targetPath });
-      });
-    });
-  }
-}
-
-const genreNewAppJson = (
-  outputPageJsonPath: string,
-  appJson: Record<string, any>,
-  manifestList: IManifestJson[]
-) => {
-  try {
-    const newAppJSon = genreFullMainAppJsonByManifestList(
-      { subPackages: [], ...appJson },
-      manifestList
-    );
-    writeFiles(outputPageJsonPath, newAppJSon);
-  } catch (error) {
-    console.error("[AppJSON] Genre failed:", error);
-  }
-};
-
-const createMainAppServer = (manifestJson: TGenreManifestJson) => {
+const createMainAppServer = () => {
   const mfeServer = WsServer.getInstance((opt) => {
     const { type, data } = opt;
     if (type === E_WS_TYPE.CHANGE) {
@@ -158,18 +77,52 @@ const createMainAppClient = (
 export const createMainAppPlugin = (
   manifestJson: TGenreManifestJson
 ): Plugin[] => {
-  let mainPwd = "";
-  let isWatcherReady = false;
-  let mfeClientServer: WsClientServer;
-  let mfeServer: WsServer;
-  let fn: (() => void) | null = null;
+  const state: {
+    mainPwd: string;
+    isWatcherReady: boolean;
+    mfeClientServer?: WsClientServer;
+    fn?: (() => void) | null;
+  } = {
+    mainPwd: "",
+    isWatcherReady: false,
+    mfeClientServer: undefined,
+    fn: null,
+  };
 
   const isBuild = () => process.env.MFE_BUILD_MODE === EBuildMode.BUILD;
   const isServe = () => manifestJson.value.isServe;
   const isRoot = () => manifestJson.value.isRoot;
-  const isStartServer = () => {
+  const shouldServe = () => {
     if (isBuild()) return false;
     return isServe();
+  };
+
+  const initSync = () => {
+    if (state.isWatcherReady) return;
+    startDistWatcher(
+      state.mainPwd,
+      () => {
+        state.isWatcherReady = true;
+      },
+      (change) => {
+        state.fn = () =>
+          state.mfeClientServer!.sendMessage(E_WS_TYPE.CHANGE, {
+            ...change,
+            appCode: manifestJson.value.appCode,
+          });
+      }
+    );
+  };
+
+  const copyAppDistModule = ({ pwd }: any) => {
+    if (!process.env.MFE_SOURCE_OUTPUT_DIR) {
+      console.error("[Plugin] MFE_SOURCE_OUTPUT_DIR not defined");
+      return;
+    }
+    state.mainPwd = path.join(pwd, manifestJson.value.appCode);
+    const targetPath = state.mainPwd;
+    const sourcePath = process.env.MFE_SOURCE_OUTPUT_DIR;
+    copyFilesByTargetPath(sourcePath, targetPath);
   };
 
   let watchFile: null | (() => void) = () => {
@@ -184,75 +137,51 @@ export const createMainAppPlugin = (
     });
   };
 
-  const distWatcher = new DistWatcher();
-  const serverPlugin: Plugin & IMainAppFilePlugin = {
+  const createServePlugin = (): Plugin => ({
     name: "@dd-code:main-app:serve",
     async config() {
-      const isServe = isStartServer();
-      if(isBuild()) return;
-      if (!isServe) {
-        if (!isBuild() && isRoot()) {
-          const { server, start } = createHttpServer();
-          start();
-        }
-
+      if (isBuild()) {
         return;
       }
+
       if (isRoot()) {
-        mfeServer = createMainAppServer(manifestJson);
+        if (!isServe()) {
+          const { start } = createHttpServer();
+          start();
+          return;
+        }
+        createMainAppServer();
+        // const subs = findLocalSubApps();
+        // if (subs.length) {
+        // startLocalSubApps(subs, "mp-weixin", manifestJson.value.mode);
+        // }
       } else {
-        mfeClientServer = createMainAppClient(manifestJson, (data) => {
-          serverPlugin.copyAppDistModule(data);
+        state.mfeClientServer = createMainAppClient(manifestJson, (data) => {
+          copyAppDistModule(data);
         });
       }
     },
-    closeBundle() {
-      const isServe = isStartServer();
-
-      if (!isServe) return;
-      if (!isRoot()) {
-        serverPlugin.initWatchChange();
-        fn?.();
-        fn = null;
-      }
-    },
-    initWatchChange() {
-      if (isWatcherReady) return;
-      distWatcher.start(
-        mainPwd,
-        () => {
-          isWatcherReady = true;
-        },
-        (change) => {
-          fn = () =>
-            mfeClientServer.sendMessage(E_WS_TYPE.CHANGE, {
-              ...change,
-              appCode: manifestJson.value.appCode,
-            });
-        }
-      );
-    },
-    copyAppDistModule({ pwd }: any) {
-      if (!process.env.MFE_SOURCE_OUTPUT_DIR) {
-        console.error("[Plugin] MFE_SOURCE_OUTPUT_DIR not defined");
-        return;
-      }
-      mainPwd = path.join(pwd, manifestJson.value.appCode);
-      const targetPath = mainPwd;
-      const sourcePath = process.env.MFE_SOURCE_OUTPUT_DIR;
-      copyFilesByTargetPath(sourcePath, targetPath);
-    },
-  };
+  });
 
   return [
-    serverPlugin,
+    createServePlugin(),
+    {
+      name: "@dd-code:main-app:sync",
+      closeBundle() {
+        const start = shouldServe();
+        if (!start) return;
+        if (isRoot()) return;
+        initSync();
+        state.fn?.();
+        state.fn = null;
+      },
+    },
     {
       name: "@dd-code:main-app:watch",
       async closeBundle() {
         if (isBuild()) return;
         if (isServe()) return;
         if (!checkIsBuildInChild()) return;
-        // if (!isServe) return;
         watchFile?.();
         watchFile = null;
       },

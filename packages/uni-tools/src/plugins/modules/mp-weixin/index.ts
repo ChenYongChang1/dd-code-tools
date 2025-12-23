@@ -1,14 +1,10 @@
 import { Plugin, UserConfig } from "vite";
-import {
-  downloadManifestJson,
-  downloadProjectFiles,
-  getManifestJsonUrl,
-} from "./donwload";
-import { checkDownloadFilesIsExpired } from "./manifest-core";
+import { downloadManifestJson, downloadProjectFiles, getManifestJsonUrl } from "./utils/download";
+import { checkDownloadFilesIsExpired } from "./core/manifest-core";
 import { checkIsRootManifest, IMfeJson, SAVE_CDN_FILE_PATH } from "@/config/config";
 import { IManifestJson } from "@/config/types";
 import path from "path";
-import { copyFilesByTargetPath } from "./copy";
+import { copyFilesByTargetPath } from "@/utils/copy";
 
 export const downloadFullApps = async (manifestJson: IManifestJson) => {
   const _appsUrls = await getManifestJsonUrl(manifestJson.mode);

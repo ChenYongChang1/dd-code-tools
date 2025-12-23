@@ -2,9 +2,9 @@ import fs from "fs";
 import path from "path";
 import { PUBLISH_PATH, MANIFEST_NAME, TEMP_FILE_PATH } from "@/config/config";
 import { TGenreManifestJson } from "@/config/types";
-import { getPagesJson, initPrePagesJson } from "../uni-pages";
+import { getPagesJson, initPrePagesJson } from "../core/uni-pages";
 import { genreFileInfoRow, walkDir } from "@/utils/utils";
-import { addUniCopyPluginHook, copyFilesByTargetPath } from "../copy";
+import { addUniCopyPluginHook, copyFilesByTargetPath } from "@/utils/copy";
 import { Plugin } from "vite";
 // import { addRunningAppToSave } from "../running-core";
 

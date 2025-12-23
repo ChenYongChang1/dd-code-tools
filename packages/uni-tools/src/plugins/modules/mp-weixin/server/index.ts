@@ -6,18 +6,12 @@ import { IMainAppFilePlugin } from "@/config/types";
 export class WsServer {
   private static instance: WsServer;
   private wss: WebSocketServer;
-  httpServer: {
-    server: import("http").Server<
-      typeof import("http").IncomingMessage,
-      typeof import("http").ServerResponse
-    >;
-    start: (type: string) => void;
-  };
   clientMap: Map<string, WebSocket>;
+  httpServer: { server: import("http").Server; start: (type?: string) => void; } | null;
   constructor(
     public handleMessage?: (opt: { type: E_WS_TYPE; data: any }) => void
   ) {
-    this.httpServer = createHttpServer();
+    this.httpServer = createHttpServer()!;
     this.clientMap = new Map();
   }
 
@@ -35,12 +29,12 @@ export class WsServer {
   createServer() {
     if (this.wss) return; // 避免重复创建
     this.wss = new WebSocketServer({
-      server: this.httpServer.server, // 绑定到 Vite 的 HTTP 服务器
+      server: this.httpServer!.server, // 绑定到 Vite 的 HTTP 服务器
       path: WS_PATH, // WS 连接路径，前端连接时用 ws://localhost:5173/__mfe__ws__
     });
     this.onMessage(this.handleMessage);
     this.onConnection();
-    this.httpServer.start('ws');
+    this.httpServer!.start('ws');
   }
   onMessage(callback?: (opt: { type: E_WS_TYPE; data: any }) => void) {
     // WebSocketServer 不支持直接监听 message，必须在 connection 后的 socket 上监听

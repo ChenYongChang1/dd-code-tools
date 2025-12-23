@@ -6,7 +6,7 @@ import {
   uniReadFile,
   writeFiles,
 } from "@/utils/utils";
-import { getNodeModulesEnvAppCodeFilePath } from "./donwload";
+import { getNodeModulesEnvAppCodeFilePath } from "../utils/download";
 import {
   formatCliCommandConfig,
   getManifestCdnDirUrl,
@@ -49,31 +49,17 @@ export const createManifestManager = (): TGenreManifestJson => {
       return row;
     },
     setFiles(files: IManifestJson["files"]) {
-      // const files = all.map((i) => {
-      //   const filePath = path.resolve(outDir, i);
-      //   const content = fs.readFileSync(filePath, "utf-8");
-      //   const contentHash = generateSHA256(content).slice(0, 8);
-      //   const dirName = path.dirname(i);
-      //   const fileName = path.basename(i)
-      //   const suffixName = dirName === "." ? "" : `${dirName}/`;
-      //   return {
-      //     fileName: i,
-      //     fileUrl: `${suffixName}${contentHash}_${fileName}`,
-      //   };
-      // });
       row.files = files;
     },
     setPagesJson(pagesJson: IManifestJson["pagesJson"]) {
       row.pagesJson = pagesJson;
     },
     saveFile(filePath: string) {
-      // const files = row.files.filter((i) => i.fileName !== MANIFEST_NAME);
       const newManifest = { ...row, isServe: undefined };
       newManifest.hash = generateSHA256(JSON.stringify({ ...newManifest }));
       writeFiles(filePath, JSON.stringify(newManifest, null, 2));
     },
     setEnv(mode) {
-      // const env = loadViteConfig(mode);
       const env = formatCliCommandConfig(mode);
       const mfeJson = getMfeJson();
 
@@ -93,10 +79,5 @@ export const createManifestManager = (): TGenreManifestJson => {
     setDependencies(list: IManifestJson[]) {
       this.dependencies = list;
     },
-    // getFullManifestJsonList() {
-    //   const files = import.meta.globEager("./**/*.json");
-    //   console.log(files);
-    //   // return [...this.dependencies, this.value];
-    // },
   };
 };

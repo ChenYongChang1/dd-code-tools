@@ -5,7 +5,7 @@ import { E_WS_TYPE, HTTP_PATH, WS_PORT } from "@/config/config";
 
 let app: express | null = null;
 export const createHttpServer = () => {
-  if (app) return app;
+  if (app) return { server: app, start: () => {} };
   app = express();
   const server = http.createServer(app);
   app.get(`${HTTP_PATH}/root-path`, (req, res) => {
