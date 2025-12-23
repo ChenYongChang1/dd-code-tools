@@ -79,7 +79,6 @@ export const createManifestPlugin = (
   const collectFiles = new CollectFiles();
   return {
     name: "@dd-code:genre-mainfest-file-list",
-    enforce: "post",
     config(config) {
       const outDir = config.build?.outDir || "dist";
       collectFiles.outDir = outDir;
@@ -114,9 +113,9 @@ export const createManifestPlugin = (
       // console.log({ filePath }, "sourcePath");
       // addRunningAppToSave(manifestJson.value.appCode, filePath);
 
-      setTimeout(() => {
-        collectFiles.copyFilesToPublishDir();
-      }, 0);
+      // setTimeout(() => {
+      collectFiles.copyFilesToPublishDir();
+      // }, 0);
     },
   };
 };
