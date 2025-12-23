@@ -3,6 +3,7 @@ import { EBuildMode, formatCliCommandConfig } from "./config/config";
 import { excuteUniCommand } from "./commond";
 import { pushDistToCdn } from "./commond/push";
 import { fetchAppsRepo } from "./plugins/modules/mp-weixin/gitlib";
+import { runParallelAllUni } from "./plugins/modules/mp-weixin/running";
 
 const addUniOptions = (program) => {
   return program
@@ -18,6 +19,7 @@ const dev = program
 const build = program.command("build").description("构建 uni 项目");
 // const pushCdn = program.command("push-cdn").description("推送 uni 项目到 cdn");
 const fetchGit = program.command("fetch").description("拉取 uni 项目到本地");
+const runAll = program.command("runAll").description("运行所有 uni 项目");
 
 fetchGit.action(async () => {
   await fetchAppsRepo()
@@ -25,6 +27,12 @@ fetchGit.action(async () => {
 // pushCdn.option("--mode <mode>", "模式", "dev").action(({ mode }) => {
 //   pushDistToCdn(mode);
 // });
+
+addUniOptions(runAll).action(async ({ mode, p: platform, b }) => {
+  if(platform === 'mp-weixin') {
+    runParallelAllUni(`dev:mp-weixin`);
+  }
+});
 
 addUniOptions(dev).action(({ mode, p: platform, b }) => {
   process.env.MFE_BUILD_MODE = EBuildMode.SERVE;
