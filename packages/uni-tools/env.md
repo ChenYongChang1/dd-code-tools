@@ -5,4 +5,5 @@
 5. MFE_APP_CODE="main" // appcode
 6. MFE_UNI_SERVE=true // 是否ws
 7. MFE_CDN_HOST="https://static.chagee.com" // cdn host
+8. MFE_BUILD_MODE="serve" // 构建模式
 
