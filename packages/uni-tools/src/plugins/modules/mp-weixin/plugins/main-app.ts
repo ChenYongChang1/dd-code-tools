@@ -16,6 +16,7 @@ import {
 } from "@/config/config";
 import {
   checkAndgenreDir,
+  checkIsBuildInChild,
   createFileWatcher,
   uniFsReadJSONFile,
   uniReadFile,
@@ -165,6 +166,7 @@ export const createMainAppPlugin = (
 
   const isBuild = () => process.env.MFE_BUILD_MODE === EBuildMode.BUILD;
   const isServe = () => manifestJson.value.isServe;
+  const isRoot = () => manifestJson.value.isRoot;
   const isStartServer = () => {
     if (isBuild()) return false;
     return isServe();
@@ -187,15 +189,16 @@ export const createMainAppPlugin = (
     name: "@dd-code:main-app:serve",
     async config() {
       const isServe = isStartServer();
+      if(isBuild()) return;
       if (!isServe) {
-        if (!isBuild() && manifestJson.value.isRoot) {
+        if (!isBuild() && isRoot()) {
           const { server, start } = createHttpServer();
           start();
         }
 
         return;
       }
-      if (manifestJson.value.isRoot) {
+      if (isRoot()) {
         mfeServer = createMainAppServer(manifestJson);
       } else {
         mfeClientServer = createMainAppClient(manifestJson, (data) => {
@@ -207,7 +210,7 @@ export const createMainAppPlugin = (
       const isServe = isStartServer();
 
       if (!isServe) return;
-      if (!manifestJson.value.isRoot) {
+      if (!isRoot()) {
         serverPlugin.initWatchChange();
         fn?.();
         fn = null;
@@ -248,6 +251,7 @@ export const createMainAppPlugin = (
       async closeBundle() {
         if (isBuild()) return;
         if (isServe()) return;
+        if (!checkIsBuildInChild()) return;
         // if (!isServe) return;
         watchFile?.();
         watchFile = null;
@@ -262,12 +266,14 @@ export const createMainAppPlugin = (
             ...manifestJson.dependencies,
             manifestJson.value,
           ]);
+        if (!isRoot() && !isServe() && checkIsBuildInChild()) {
+          return;
+        }
 
-        const mainAppJsonPath = !manifestJson.value.isRoot
+        const mainAppJsonPath = !isRoot()
           ? getNodeModuleMainAppJSon(manifestJson.value.mode, ROOT_APP_CODE)
           : getMainAppJsonPath();
         const mainAppJson = uniReadFile(mainAppJsonPath);
-
         genreNewAppJson(outputPageJsonPath, mainAppJson, manifestList);
       },
     },

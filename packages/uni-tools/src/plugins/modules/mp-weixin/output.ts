@@ -7,7 +7,11 @@ import {
 } from "@/config/config";
 import { TGenreManifestJson } from "@/config/types";
 import { UserConfig } from "vite";
-import { writeFiles } from "@/utils/utils";
+import {
+  checkIsBuildInChild,
+  checkIsInnerBuild,
+  writeFiles,
+} from "@/utils/utils";
 const getMainProcess = async () => {
   const URL = `http://localhost:${WS_PORT}${HTTP_PATH}/root-path`;
   const mainProcess = await fetch(URL);
@@ -30,12 +34,16 @@ export const resetOutDir = async (
   currentManifestJson: TGenreManifestJson,
   config: UserConfig
 ) => {
-  const childBuild = process.env.MFE_TARGET_DIR === "root";
   const currentManifest = currentManifestJson.value;
-  if (!currentManifest.isRoot && childBuild && !currentManifest.isServe) {
+  if (
+    !currentManifest.isRoot &&
+    checkIsBuildInChild() &&
+    !currentManifest.isServe
+  ) {
     const mainProcess = await getMainProcessLoop();
     // mainProcess.UNI_OUTPUT_DIR
     config.build!.outDir = `${mainProcess.UNI_OUTPUT_DIR}/${currentManifest.appCode}`;
+    process.env.MFE_INNER_BUILD = "true";
     // console.log(mainProcess.UNI_OUTPUT_DIR, "mainProcessmainProcessmainProcess");
   }
 
@@ -48,7 +56,14 @@ export const resetOutDir = async (
     "/"
   ).replace(/\/$/, "");
   // if (!currentManifestJson.value.isRoot)
-  process.env.UNI_OUTPUT_DIR = process.env.MFE_ROOT_OUTPUT_DIR;
+  // console.log(config);
+
+  if (!checkIsInnerBuild()) {
+    // setTimeout(() => {
+    process.env.UNI_OUTPUT_DIR = process.env.MFE_ROOT_OUTPUT_DIR;
+    // }, 500);
+  }
+
   // console.log({
   //   UNI_OUTPUT_DIR: process.env.UNI_OUTPUT_DIR,
   //   outDir: process.env.MFE_SOURCE_OUTPUT_DIR,

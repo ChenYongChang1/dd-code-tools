@@ -3,6 +3,7 @@ import { SAVE_CDN_FILE_PATH, TEMP_FILE_PATH } from "@/config/config";
 import { downloadFullApps, moveOtherApps } from "..";
 import { IManifestJson, TGenreManifestJson } from "@/config/types";
 import { Plugin } from "vite";
+import { checkIsBuildInChild } from "@/utils/utils";
 
 export const createAppsAssetsPlugin = (
   manifestJson: TGenreManifestJson
@@ -18,6 +19,7 @@ export const createAppsAssetsPlugin = (
     },
     buildStart() {
       if (isMoved) return;
+      if(checkIsBuildInChild() && !manifestJson.value.isRoot) return
       const basePath = path.resolve(
         SAVE_CDN_FILE_PATH,
         manifestJson.value.mode || "dev"

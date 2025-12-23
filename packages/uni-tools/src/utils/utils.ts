@@ -182,7 +182,10 @@ export const genreFileInfoRow = (row: { fileName: string; source: string }) => {
   };
 };
 
-export const createFileWatcher = (filePath: string | string[], opt?: ChokidarOptions) => {
+export const createFileWatcher = (
+  filePath: string | string[],
+  opt?: ChokidarOptions
+) => {
   const watcher = chokidar.watch(filePath, {
     persistent: true,
     ignoreInitial: true,
@@ -195,3 +198,7 @@ export const createFileWatcher = (filePath: string | string[], opt?: ChokidarOpt
   });
   return watcher;
 };
+
+export const checkIsBuildInChild = () => process.env.MFE_TARGET_DIR === "root";
+
+export const checkIsInnerBuild = () => process.env.MFE_INNER_BUILD === "true";
