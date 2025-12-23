@@ -12,6 +12,7 @@ import {
   checkIsInnerBuild,
   writeFiles,
 } from "@/utils/utils";
+let num = 5;
 const getMainProcess = async () => {
   const URL = `http://localhost:${WS_PORT}${HTTP_PATH}/root-path`;
   const mainProcess = await fetch(URL);
@@ -26,8 +27,13 @@ const getMainProcessLoop = async () => {
   } catch (e) {}
   return new Promise((resolve) => {
     setTimeout(() => {
+      num--;
+      if (num <= 0) {
+        resolve(null);
+        num = 5;
+      }
       resolve(getMainProcessLoop());
-    }, 1000);
+    }, 100);
   });
 };
 export const resetOutDir = async (
@@ -41,9 +47,14 @@ export const resetOutDir = async (
     !currentManifest.isServe
   ) {
     const mainProcess = await getMainProcessLoop();
+    if (mainProcess) {
+      config.build!.outDir = `${mainProcess.UNI_OUTPUT_DIR}/${currentManifest.appCode}`;
+      process.env.MFE_INNER_BUILD = "true";
+    }else{
+      process.env.MFE_TARGET_DIR = ""
+    }
     // mainProcess.UNI_OUTPUT_DIR
-    config.build!.outDir = `${mainProcess.UNI_OUTPUT_DIR}/${currentManifest.appCode}`;
-    process.env.MFE_INNER_BUILD = "true";
+
     // console.log(mainProcess.UNI_OUTPUT_DIR, "mainProcessmainProcessmainProcess");
   }
 
