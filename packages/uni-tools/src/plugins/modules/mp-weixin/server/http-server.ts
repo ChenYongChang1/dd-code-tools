@@ -14,7 +14,7 @@ export const createHttpServer = () => {
   app.use(cors({ origin: "*" }));
   return {
     server,
-    start: (type: string) => {
+    start: (type?: string) => {
       const originKey = type || "http";
       server.listen(WS_PORT, () => {
         console.log(

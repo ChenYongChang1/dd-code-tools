@@ -168,8 +168,8 @@ export const createMainAppPlugin = (
     {
       name: "@dd-code:main-app:sync",
       closeBundle() {
-        const start = shouldServe();
-        if (!start) return;
+        const start = isServe();
+        if (!start || isBuild()) return;
         if (isRoot()) return;
         initSync();
         state.fn?.();

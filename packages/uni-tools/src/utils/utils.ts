@@ -1,3 +1,4 @@
+import fsExtra from "fs-extra";
 import fs from "fs";
 import path from "path";
 import crypto, { BinaryToTextEncoding } from "crypto";
@@ -202,3 +203,14 @@ export const createFileWatcher = (
 export const checkIsBuildInChild = () => process.env.MFE_TARGET_DIR === "root";
 
 export const checkIsInnerBuild = () => process.env.MFE_INNER_BUILD === "true";
+
+export const unlinkDeepDirOrFile = (filePath: string) => {
+  try {
+    if (fsExtra.pathExistsSync(filePath)) {
+      // 同步检查是否存在
+      fsExtra.removeSync(filePath); // 同步递归删除
+    }
+  } catch (err) {
+    console.error("删除文件夹失败：", err);
+  }
+};

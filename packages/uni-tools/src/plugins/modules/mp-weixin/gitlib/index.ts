@@ -1,7 +1,8 @@
 import { inquirerPrompt } from "@/utils/package";
 import { getMfeJson, PROJECT_GIT_PATH } from "@/config/config";
 import { execSync } from "child_process";
-import { checkAndgenreDir } from "@/utils/utils";
+import { checkAndgenreDir, unlinkDeepDirOrFile } from "@/utils/utils";
+import path from "path";
 
 export const fetchAppsRepo = async () => {
   // execSync(`git clone -b ${branch} ${repoUrl} ${destDir}`);
@@ -31,6 +32,7 @@ export const fetchAppsRepo = async () => {
     if (repoUrl) {
       const fileName = appCode.replace(/\//g, "_")
       const dir = PROJECT_GIT_PATH;
+      unlinkDeepDirOrFile(path.join(dir, fileName));
       checkAndgenreDir(dir);
       execSync(`cd ${dir} && git clone ${repoUrl} ${fileName}`, {
         stdio: "inherit",
