@@ -59,6 +59,9 @@ export const createManifestManager = (): TGenreManifestJson => {
       newManifest.hash = generateSHA256(JSON.stringify({ ...newManifest }));
       writeFiles(filePath, JSON.stringify(newManifest, null, 2));
     },
+    setExposes(exposes: IManifestJson["exposes"]) {
+      row.exposes = exposes || {};
+    },
     setEnv(mode) {
       const env = formatCliCommandConfig(mode);
       const mfeJson = getMfeJson();

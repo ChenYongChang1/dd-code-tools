@@ -11,6 +11,7 @@ export interface IManifestJson {
   publicPath: string;
   apps?: IMfeJson["apps"];
   isServe?: boolean;
+  exposes?: Record<string, string>;
   pagesJson: {
     pages?: { path: string; style: Record<string, string> }[];
     [k: string]: any;
@@ -28,6 +29,7 @@ export type TGenreManifestJson = {
   setPagesJson: (pagesJson: IManifestJson["pagesJson"]) => void;
   saveFile: (baseDir: string) => void;
   setDependencies: (list: IManifestJson[]) => void;
+  setExposes: (exposes: IManifestJson["exposes"]) => void;
   dependencies: IManifestJson[];
 };
 
@@ -35,4 +37,9 @@ export type TGenreManifestJson = {
 export interface IMainAppFilePlugin {
   copyAppDistModule: (options: { pwd: string }) => void;
   initWatchChange: () => void;
+}
+
+
+export interface IUniConfigOptions {
+  exposes?: Record<string, string>;
 }

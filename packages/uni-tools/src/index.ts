@@ -1,5 +1,6 @@
 import { getPlatform } from "./config/config";
 import { EPlaform } from "./config/enum";
+import { IUniConfigOptions } from "./config/types";
 import { createMpWeixinUniPlugin } from "./plugins/mp-weixin";
 
 /**
@@ -13,7 +14,7 @@ import { createMpWeixinUniPlugin } from "./plugins/mp-weixin";
  *   customOption: 'value'
  * });
  */
-export default (options?: Record<string, any>) => {
+export default (options?: IUniConfigOptions) => {
   const platform = getPlatform();
   return platform === EPlaform.MP_WEIXIN
     ? createMpWeixinUniPlugin(options)

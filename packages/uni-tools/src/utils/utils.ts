@@ -214,3 +214,9 @@ export const unlinkDeepDirOrFile = (filePath: string) => {
     console.error("删除文件夹失败：", err);
   }
 };
+
+export const getFilePathWithoutExt = (filePath: string) => {
+  const dirName = path.dirname(filePath);
+  const baseName = path.basename(filePath, path.extname(filePath));
+  return path.join(dirName, baseName);
+};
