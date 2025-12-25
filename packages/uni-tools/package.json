@@ -1,6 +1,6 @@
 {
   "name": "@dd-code/uni-tools",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "Universal tools for code utilities",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
