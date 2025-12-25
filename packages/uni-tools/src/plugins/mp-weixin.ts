@@ -1,4 +1,4 @@
-import { Plugin, UserConfig, OutputBundle } from "vite";
+import { Plugin, UserConfig } from "vite";
 import { createManifestManager } from "./modules/mp-weixin/core/manifest-core";
 import { resetOutDir } from "./modules/mp-weixin/output";
 import { createAppsAssetsPlugin } from "./modules/mp-weixin/plugins/assets";

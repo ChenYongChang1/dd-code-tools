@@ -3,17 +3,14 @@ import { getFilePathWithoutExt } from "@/utils/utils";
 import path from "path";
 import { Plugin } from "vite";
 
-const renderRuntimeCode = (moduleExports, source) => {
+const RUNTIME_PATH_PLACEHOLDER = "__RUNTIME_PATH_PLACEHOLDER__";
+
+const renderRuntimeCode = (moduleExports) => {
   const { path: filePath, exports: exportNames } = moduleExports;
-  // const
-  const fullPath = filePath;
-  // 打印 source 到fullpath的相对路径
-  const relativePath = path.relative(source, fullPath);
-  console.log(source, fullPath, relativePath);
   let str = "";
   exportNames?.forEach((exportName) => {
-    // this.addWatchFile(fullPath);
-    str += `export const ${exportName} = require('${relativePath}').${exportName}; exports.${exportName} = ${exportName}; \n`;
+    // 使用占位符，稍后在 generateBundle 中替换为正确的相对路径
+    str += `export const ${exportName} = require('../../../${filePath}').${exportName};`;
   });
   return str;
 };
@@ -23,40 +20,71 @@ export const createExposesPlugin = (
 ): Plugin[] => {
   options.exposes = options.exposes || {};
   const buildName = "__mfe_runtime__.js";
+  const rootBuildName = process.cwd() + "/" + buildName;
+  console.log(rootBuildName, "rootBuildName");
+
   const getBuildPath = () =>
-    path.join("/" + currentManifestJson.value.appCode, buildName);
+    path.join(currentManifestJson.value.appCode, buildName);
+
+  const importers = new Set<string>();
+
   return [
     {
       name: "@chagee:uni-exposes",
       enforce: "post",
-      resolveId(id, source) {
-        if (id === "@dd-code/runtime") {
-          return `${id}?source=${source}`;
+      config(config) {
+        config.resolve ||= {};
+        config.resolve.alias ||= [];
+        if (Array.isArray(config.resolve.alias)) {
+          config.resolve.alias.push({
+            find: "@dd-code/runtime",
+            replacement: rootBuildName,
+          });
+        }
+      },
+      async resolveId(id, importer) {
+        // 如果包含占位符，直接标记为 external，防止 Rollup 尝试解析
+        if (id.includes(RUNTIME_PATH_PLACEHOLDER)) {
+          return { id, external: true };
+        }
+        if (id === rootBuildName) {
+          if (importer) importers.add(importer);
+          const info = await this.getModuleInfo(importer!);
+          console.log({ id, importer, info });
+
+          return id;
         }
       },
       async load(id) {
-        if (id.includes("@dd-code/runtime")) {
-          const source = id.split("?source=")[1];
-          const sourceId = await this.resolve(source);
-          const info = await this.load(sourceId!);
-          const moduleInfo = await this.getModuleInfo(sourceId!.id);
-          console.log(id, { sourceId, info, moduleInfo });
+        if (id.includes(buildName)) {
+          let runtimeCode = "";
+          const exposeCode = {
+            ".": {
+              path: "store/index.js",
+              exports: ["userStore"],
+            },
+          };
+          const exports = exposeCode["."];
+          const source = getBuildPath();
+          console.log({ source });
 
-          return 'export const userStore = "asdasdasdasd"';
+          runtimeCode += renderRuntimeCode(exports);
+
+          return runtimeCode;
         }
       },
-      async transform(code, id, options) {
-        if (id.includes("@dd-code/runtime")) {
-          console.log(code, id, options);
-          const source = id.split("?source=")[1];
-          const sourceId = await this.resolve(source);
-          const info = await this.load(sourceId!);
-          const moduleInfo = await this.getModuleInfo(sourceId!.id);
-          console.log(id, { sourceId, info, moduleInfo });
+      // async transform(code, id, options) {
+      //   if (id.includes("@dd-code/runtime")) {
+      //     console.log(code, id, options);
+      //     const source = id.split("?source=")[1];
+      //     const sourceId = await this.resolve(source);
+      //     const info = await this.load(sourceId!);
+      //     const moduleInfo = await this.getModuleInfo(sourceId!.id);
+      //     console.log(id, { sourceId, info, moduleInfo });
 
-          // return renderRuntimeCode(moduleInfo, source);
-        }
-      },
+      //     // return renderRuntimeCode(moduleInfo, source);
+      //   }
+      // },
       // load(id) {
       //   if (id.startsWith("@dd-code/runtime")) {
       //     const source = id.split("?source=")[1];
@@ -93,7 +121,6 @@ export const createExposesPlugin = (
       //   }
       // },
       async buildStart() {
-        let runtimeCode = "";
         for (const [alias, spec] of Object.entries(options.exposes || {})) {
           // console.log(alias, spec);
 
@@ -110,23 +137,38 @@ export const createExposesPlugin = (
           }
           // renderRuntimeCode()
         }
-        const exposeCode = {
-          ".": {
-            path: "/store/index.js",
-            exports: ["userStore"],
-          },
-        };
-        const exports = exposeCode["."];
-        runtimeCode += renderRuntimeCode(exports, getBuildPath());
-        this.emitFile({
-          type: "prebuilt-chunk",
-          fileName: buildName,
-          code: runtimeCode,
-        });
       },
-      async generateBundle(_, bundles) {
+     async generateBundle(_, bundles) {
         const chunks = Object.values(bundles).filter((b) => b.type === "chunk");
         const resolveIdsMap = {};
+
+        // // 遍历所有 chunk，替换 runtime 代码中的占位符
+        // for (const chunk of chunks) {
+        //   if (chunk.code && chunk.code.includes(RUNTIME_PATH_PLACEHOLDER)) {
+        //     // 计算当前 chunk 所在目录到根目录的相对路径
+        //     const currentDir = path.dirname(chunk.fileName);
+        //     // 相对路径，如 ../..
+        //     let relativePath = path.relative(currentDir, ".");
+        //     // 如果 relativePath 为空字符串，说明在同一级，使用 .
+        //     if (relativePath === "") relativePath = ".";
+        //     // 如果不是以 . 开头，补充 ./
+        //     if (!relativePath.startsWith(".")) relativePath = "./" + relativePath;
+
+        //     // 替换占位符
+        //     chunk.code = chunk.code
+        //       .split(RUNTIME_PATH_PLACEHOLDER)
+        //       .join(relativePath);
+        //   }
+        // }
+
+        // // 打印 importer 的打包路径
+        // importers.forEach((importer) => {
+        //   const owner = chunks.find((c) => c.modules && c.modules[importer]);
+        //   if (owner) {
+        //     console.log(`Importer ${importer} packaged to: ${owner.fileName}`);
+        //   }
+        // });
+
         for (const i in options.exposes) {
           const moduleId = await this.resolve(options.exposes[i]);
           if (moduleId) {
