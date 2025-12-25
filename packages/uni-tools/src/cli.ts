@@ -35,9 +35,9 @@ fetchGit.action(async () => {
 //   pushDistToCdn(mode);
 // });
 
-addUniOptions(runAll).action(async ({ mode, p: platform, b }) => {
+addUniOptions(runAll).option("--cmd <execCmd>", "启动命令", "dev:mp-weixin").action(async ({ mode, p: platform, cmd }) => {
   if(platform === 'mp-weixin') {
-    runParallelAllUni(`dev:mp-weixin`);
+    runParallelAllUni(cmd);
   }
 });
 

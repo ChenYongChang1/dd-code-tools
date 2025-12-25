@@ -19,7 +19,8 @@
   },
   "dependencies": {
     "@dd-code/shared": "workspace:*",
-    "inquirer": "^12.6.3"
+    "inquirer": "^12.6.3",
+    "js-yaml": "^4.1.1"
   },
   "peerDependencies": {
     "chalk": ">=4.1.2",

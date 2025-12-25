@@ -24,7 +24,8 @@ const external = [
   "ws",
   "express",
   "commander",
-  "inquirer"
+  "inquirer",
+  "js-yaml"
 ];
 
 export default [

@@ -1,4 +1,4 @@
-import { formatCliCommandConfig, getMfeJson, MANIFEST_NAME, PROJECT_GIT_PATH } from "@/config/config";
+import { formatCliCommandConfig, getMfeJson, MANIFEST_NAME } from "@/config/config";
 import { checkAndgenreDir, createFileWatcher } from "@/utils/utils";
 import { copyFilesByTargetPath } from "@/utils/copy";
 import fs from "fs";
@@ -8,7 +8,6 @@ import { spawn } from "child_process";
 /**
  * 运行期联调核心
  * - getAppsManifestList：在主应用非联调构建模式下，返回所有子应用的 Manifest 路径列表
- * - findLocalSubApps/startLocalSubApps：在本地仓库目录下寻找并并行启动子应用，便于联调
  * - startDistWatcher：监听子应用输出目录的父级变更，增量拷贝到主应用分包路径，并上报变更
  * - 设计要点：
  *   - 监听父级目录以覆盖新增/删除场景；通过 `isTargetFile` 过滤目标变化
@@ -33,19 +32,6 @@ export const getAppsManifestList = (mode: string) => {
     };
   });
   return apps;
-};
-
-export const findLocalSubApps = (baseDir?: string) => {
-  const dir = baseDir || PROJECT_GIT_PATH;
-  const root = path.resolve(process.cwd(), dir);
-  if (!fs.existsSync(root)) return [];
-  const list = fs
-    .readdirSync(root)
-    .filter((d) => fs.statSync(path.join(root, d)).isDirectory());
-  return list.map((appCode) => ({
-    appCode,
-    dir: path.join(root, appCode),
-  }));
 };
 
 export const startLocalSubApps = (

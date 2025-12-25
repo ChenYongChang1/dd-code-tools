@@ -18,7 +18,7 @@ export interface IMfeJson {
 }
 
 // 项目 Git 子模块路径
-export const PROJECT_GIT_PATH = "src/subtree";
+export const PROJECT_GIT_PATH = "./sub-repo";
 
 // 基础项目文件列表
 export const BASE_PROJECT_FILES = ["project.config.json"];

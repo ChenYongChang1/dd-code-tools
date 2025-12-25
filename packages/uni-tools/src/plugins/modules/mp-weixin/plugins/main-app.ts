@@ -11,7 +11,6 @@ import { copyFilesByTargetPath } from "@/utils/copy";
 import { genreNewAppJson } from "@/plugins/modules/mp-weixin/core/app-json";
 import {
   getAppsManifestList,
-  findLocalSubApps,
   startLocalSubApps,
   startDistWatcher,
 } from "@/plugins/modules/mp-weixin/core/runtime";
@@ -186,10 +185,6 @@ export const createMainAppPlugin = (
          * 联调开发：启动根应用 WS 服务，负责给子应用下发初始化信息并接收变更事件
          */
         createMainAppServer();
-        // const subs = findLocalSubApps();
-        // if (subs.length) {
-        // startLocalSubApps(subs, "mp-weixin", manifestJson.value.mode);
-        // }
       } else {
         /**
          * 子应用：作为 WS 客户端连接主应用
