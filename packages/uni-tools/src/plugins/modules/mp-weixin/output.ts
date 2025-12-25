@@ -13,6 +13,10 @@ import {
   writeFiles,
 } from "@/utils/utils";
 let num = 5;
+/**
+ * 从主应用 HTTP 服务拉取当前进程环境（含 UNI_OUTPUT_DIR）
+ * - serve 非联调模式下，子应用通过此接口获知主应用输出根目录
+ */
 const getMainProcess = async () => {
   const URL = `http://localhost:${WS_PORT}${HTTP_PATH}/root-path`;
   const mainProcess = await fetch(URL);
@@ -20,6 +24,10 @@ const getMainProcess = async () => {
   console.log(result, "mainProcess");
   return result;
 };
+/**
+ * 简易重试（最多 5 次，每次 100ms）
+ * - 主应用 HTTP 服务启动可能有延迟，子应用循环尝试获取
+ */
 const getMainProcessLoop = async () => {
   try {
     const mainProcess = await getMainProcess();
@@ -41,6 +49,12 @@ export const resetOutDir = async (
   config: UserConfig
 ) => {
   const currentManifest = currentManifestJson.value;
+  /**
+   * 子应用直写主应用：
+   * - 条件：非根应用 + 子应用构建（--b root）+ 非联调
+   * - 行为：将子应用 outDir 改写到主应用输出目录下的对应分包路径
+   * - 并设置内部构建标记，避免后续将 UNI_OUTPUT_DIR 重置为主应用根目录
+   */
   if (
     !currentManifest.isRoot &&
     checkIsBuildInChild() &&
@@ -69,6 +83,10 @@ export const resetOutDir = async (
   // if (!currentManifestJson.value.isRoot)
   // console.log(config);
 
+  /**
+   * 非内部构建下，将 UNI_OUTPUT_DIR 统一指向主应用根输出目录
+   * - 便于后续写入 app.json 与拷贝产物
+   */
   if (!checkIsInnerBuild()) {
     // setTimeout(() => {
     process.env.UNI_OUTPUT_DIR = process.env.MFE_ROOT_OUTPUT_DIR;

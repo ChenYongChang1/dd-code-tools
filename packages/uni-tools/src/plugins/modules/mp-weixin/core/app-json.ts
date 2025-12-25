@@ -2,6 +2,12 @@ import { IManifestJson } from "@/config/types";
 import { getPagesJson } from "../core/uni-pages";
 import { uniFsReadJSONFile, writeFiles } from "@/utils/utils";
 
+/**
+ * 主应用 app.json 渲染与写入
+ * - renderPagesJsonByArray：将多个子应用的 pages.json 以分包形式合入主应用
+ * - genreFullMainAppJsonByManifestList：按 Manifest 列表生成完整的主应用 app.json
+ * - genreNewAppJson：内容比较后写入 app.json，避免无效写入导致的频繁重启
+ */
 export const renderPagesJsonByArray = (
   appPages: IManifestJson[],
   pageJson: any

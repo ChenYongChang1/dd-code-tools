@@ -27,6 +27,20 @@ import {
   ROOT_APP_CODE,
 } from "@/config/config";
 
+/**
+ * 主应用插件（Main App）
+ * - 服务端（根应用）：
+ *   - 启动 WS + HTTP 服务，向子应用广播初始化信息（主应用输出目录）
+ *   - 接收子应用文件变更事件，拉取对应子应用 Manifest 并增量更新主应用 app.json
+ * - 客户端（子应用）：
+ *   - 连接主应用 WS，接收初始化 pwd 后将自身构建产物增量拷贝到主应用分包路径
+ *   - 在构建完成后启动本地 DistWatcher，监控自身输出变更并通过 WS 通知主应用
+ * - 构建阶段：
+ *   - 合并所有依赖子应用的 pages.json，生成最终主应用 app.json，内容比较避免无效写入
+ * - 关键点：
+ *   - `isBuild`/`isServe`/`isRoot` 三态控制插件行为，避免生产与联调逻辑相互影响
+ *   - `copyFilesByTargetPath` 与 `genreNewAppJson` 均内置内容比较，防止频繁重启
+ */
 const filterManifestJsonListAndMainPageJson = (
   manifestJsonList: IManifestJson[]
 ) => {
@@ -92,6 +106,11 @@ export const createMainAppPlugin = (
   const isBuild = () => process.env.MFE_BUILD_MODE === EBuildMode.BUILD;
   const isServe = () => manifestJson.value.isServe;
   const isRoot = () => manifestJson.value.isRoot;
+  /**
+   * serve 行为开关：
+   * - 生产构建（BUILD）不启动联调
+   * - 开发态下依据 env 决定是否启动 WS/HTTP 与文件监听
+   */
   const shouldServe = () => {
     if (isBuild()) return false;
     return isServe();
@@ -105,6 +124,11 @@ export const createMainAppPlugin = (
         state.isWatcherReady = true;
       },
       (change) => {
+        /**
+         * 通过 WS 将子应用的输出变更上报主应用
+         * - 包含事件类型、源/目标路径、相对路径等
+         * - 主应用端在收到 CHANGE 后增量更新 app.json
+         */
         state.fn = () =>
           state.mfeClientServer!.sendMessage(E_WS_TYPE.CHANGE, {
             ...change,
@@ -126,6 +150,10 @@ export const createMainAppPlugin = (
   };
 
   let watchFile: null | (() => void) = () => {
+    /**
+     * 在非 serve + 主应用构建时，监听所有子应用 Manifest 文件变化
+     * - 变化时重算并写入 app.json，保持主应用 pages 配置最新
+     */
     const allManifest = getAppsManifestList(manifestJson.value.mode);
     const watchFileList = allManifest.map((item) => item.filePath);
     const watcher = createFileWatcher(watchFileList);
@@ -146,16 +174,27 @@ export const createMainAppPlugin = (
 
       if (isRoot()) {
         if (!isServe()) {
+          /**
+           * 非联调开发：仅提供 HTTP 接口给子应用构建过程（返回主应用输出路径）
+           * - 子应用执行 `--b root` 构建时，通过该接口定位主应用输出目录
+           */
           const { start } = createHttpServer();
           start();
           return;
         }
+        /**
+         * 联调开发：启动根应用 WS 服务，负责给子应用下发初始化信息并接收变更事件
+         */
         createMainAppServer();
         // const subs = findLocalSubApps();
         // if (subs.length) {
         // startLocalSubApps(subs, "mp-weixin", manifestJson.value.mode);
         // }
       } else {
+        /**
+         * 子应用：作为 WS 客户端连接主应用
+         * - 收到 INIT 后，将自身产物拷贝到主应用分包路径
+         */
         state.mfeClientServer = createMainAppClient(manifestJson, (data) => {
           copyAppDistModule(data);
         });

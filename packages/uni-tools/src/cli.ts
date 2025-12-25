@@ -5,6 +5,13 @@ import { pushDistToCdn } from "./commond/push";
 import { fetchAppsRepo } from "./plugins/modules/mp-weixin/gitlib";
 import { runParallelAllUni } from "./plugins/modules/mp-weixin/running";
 
+/**
+ * CLI 命令
+ * - serve：开发态运行，支持 `-p` 平台、`--mode` 模式、`--b` 目标路径
+ * - build：生产构建，支持平台/模式；mp-weixin 下根据 isRoot/appCode 进行差异化参数
+ * - fetch：交互式拉取子应用仓库（选择 apps 列表并 clone 到本地）
+ * - runAll：并行启动所有 mp-weixin 项目
+ */
 const addUniOptions = (program) => {
   return program
     .option("-p <platform>", "平台", "h5")

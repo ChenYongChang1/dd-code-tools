@@ -5,6 +5,15 @@ import fs from "fs";
 import path from "path";
 import { spawn } from "child_process";
 
+/**
+ * 运行期联调核心
+ * - getAppsManifestList：在主应用非联调构建模式下，返回所有子应用的 Manifest 路径列表
+ * - findLocalSubApps/startLocalSubApps：在本地仓库目录下寻找并并行启动子应用，便于联调
+ * - startDistWatcher：监听子应用输出目录的父级变更，增量拷贝到主应用分包路径，并上报变更
+ * - 设计要点：
+ *   - 监听父级目录以覆盖新增/删除场景；通过 `isTargetFile` 过滤目标变化
+ *   - 拷贝时进行内容比较，避免触发无效写入
+ */
 export const getAppsManifestList = (mode: string) => {
   const manifest = formatCliCommandConfig(mode);
   if (!manifest.isRoot) {
@@ -67,6 +76,11 @@ export const startDistWatcher = (
   const filePath = path.resolve(root);
   checkAndgenreDir(filePath);
   const parentDir = path.dirname(filePath);
+  /**
+   * 监听父级目录：
+   * - uni 输出目录在构建时可能新增/删除文件或目录，监听父级可捕捉到此类变化
+   * - 通过 isTargetFile 精确过滤与目标目录相关的事件
+   */
   const watcher = createFileWatcher(parentDir);
   const isTargetFile = (p: string) =>
     p.startsWith(filePath + path.sep) || p === filePath;
@@ -79,6 +93,11 @@ export const startDistWatcher = (
       const sourcePath = p;
       const targetPath = path.join(mainPwd, rel);
       if (["add", "change"].includes(evt)) {
+        /**
+         * 增量拷贝：
+         * - 目录结构保持一致，从子应用输出拷贝到主应用分包路径
+         * - 通过 copyFilesByTargetPath 的内容比较避免重复写入
+         */
         copyFilesByTargetPath(sourcePath, targetPath);
       }
       onChange?.({ type: evt, p, sourcePath, targetPath });

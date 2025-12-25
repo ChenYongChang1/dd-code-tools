@@ -15,6 +15,10 @@ export class WsServer {
     this.clientMap = new Map();
   }
 
+  /**
+   * 单例获取 WS 服务实例
+   * - 若已创建则复用并更新消息回调
+   */
   static getInstance(
     handleMessage?: (opt: { type: E_WS_TYPE; data: any }) => void
   ) {
@@ -44,6 +48,9 @@ export class WsServer {
     }
   }
 
+  /**
+   * 向指定 appCode 的客户端发送消息
+   */
   sendMessageToApp(appCode: string, message: any) {
     const ws = this.clientMap.get(appCode);
     if (ws) {
@@ -51,6 +58,9 @@ export class WsServer {
     }
   }
 
+  /**
+   * 连接事件：建立客户端映射并下发初始化信息（主应用输出目录）
+   */
   onConnection() {
     this.wss.on("connection", (ws, request) => {
       // console.log("客户端已连接 WS 服务");
@@ -93,6 +103,9 @@ export class WsClientServer {
     this.isConnected = false;
   }
 
+  /**
+   * 获取客户端单例
+   */
   static getInstance(
     handleMessage?: (opt: { type: E_WS_TYPE; data: any }) => void
   ) {
@@ -147,6 +160,9 @@ export class WsClientServer {
       this.handleMessage = callback;
     }
   }
+  /**
+   * 简单重试策略：一定时间后重新连接
+   */
   retryConnect(appCode: string) {
     if (this.isConnected) return;
     this.isConnected = true;

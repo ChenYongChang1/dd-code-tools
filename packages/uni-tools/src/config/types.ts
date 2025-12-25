@@ -4,6 +4,12 @@ export interface IExposeInfo {
   path?: string;
   exports?: string[];
 }
+/**
+ * 构建/运行期的 Manifest 结构
+ * - exposes：运行时暴露的键值映射（键形如 '.' 或 './name'）
+ * - pagesJson：原始的 pages.json 对象（会被转换为微信格式）
+ * - files：本次构建与运行期拷贝的文件清单（用于产物发布/分发）
+ */
 export interface IManifestJson {
   mode: string;
   cdn: string;

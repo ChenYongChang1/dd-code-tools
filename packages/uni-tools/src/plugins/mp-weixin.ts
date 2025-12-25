@@ -9,6 +9,19 @@ import { PUBLISH_PATH } from "@/config/config";
 import { IUniConfigOptions } from "@/config/types";
 import { createExposesPlugin } from "./modules/mp-weixin/plugins/exposes";
 
+/**
+ * mp-weixin 平台插件聚合器
+ * - 初始化并维护当前构建的 Manifest 管理器（state + IO）
+ * - 根据模式预清理发布目录并重置 outDir（避免脏数据影响产物）
+ * - 组合注册各业务插件：运行时暴露、资源搬运、Manifest 采集与主应用逻辑
+ * - 插件间通过 `currentManifestJson` 共享上下文（环境、文件列表、依赖、exposes 映射）
+ * - 插件注册顺序：
+ *   1) pre: @dd-code:genre-params（设置环境、重置 outDir）
+ *   2) post: exposes（生成 runtime 入口与 exposes 产物映射）
+ *   3) pre: apps-assets（下载/搬运其它应用资源到主输出目录）
+ *   4) default: manifest-plugin（采集 pages.json 与产物清单）
+ *   5) post: main-app（serve/watch/merge 核心逻辑）
+ */
 export const createMpWeixinUniPlugin = (
   options: IUniConfigOptions = {}
 ): (Plugin | Plugin[])[] => {
