@@ -14,19 +14,17 @@ const RUNTIME_NAME = "@dd-code/runtime";
 const RUNTIME_NAME_REGEXP = new RegExp(RUNTIME_NAME + "(/.*)?");
 console.log(RUNTIME_NAME_REGEXP, "RUNTIME_NAME_REGEXP");
 
-const renderRuntimeCode = (exposeCode: IExposeInfo, appCode: string) => {
+const renderRuntimeCode = (
+  moduleExpose: IExposeInfo,
+  appCode: string
+) => {
   const deepPath = path.relative(appCode, path.dirname(buildName));
   let str = "";
-  Object.values(exposeCode).forEach((moduleExpose) => {
-    console.log(moduleExpose, "moduleExpose");
-    const { exports: exportName, path: filePath } = moduleExpose || {};
-    exportName.forEach((item) => {
-      str += `export const {${item}} = require('${deepPath}/${filePath}');`;
-    });
-  });
-
-  console.log({ str });
-
+  console.log(moduleExpose, "moduleExpose");
+  const {exports: exportName, path: filePath} = moduleExpose || {};
+  exportName.forEach((item) => {
+    str += `export const {${item}} = require('${deepPath}/${filePath}');`;
+  })
   // Object.entries(moduleExpose || {}).forEach(([exportName, filePath]) => {
   //   console.log(exportName, filePath, "exportName, filePath");
 
@@ -45,7 +43,7 @@ export const createExposesPlugin = (
       enforce: "post",
       async resolveId(id, importer) {
         if (RUNTIME_NAME_REGEXP.test(id)) {
-          return RUNTIME_NAME;
+          return id;
         }
       },
       async load(id) {
@@ -56,13 +54,13 @@ export const createExposesPlugin = (
           );
           const exposeCode = manifestJson.exposes || {};
 
-          // const matched = id.match(RUNTIME_NAME_REGEXP);
-          // console.log(matched, exposeCode, "matched");
+          const matched = id.match(RUNTIME_NAME_REGEXP);
+          console.log(matched, exposeCode, "matched");
 
-          // const deepPath = "." + (matched?.[1] || "");
-          // const moduleExpose: IExposeInfo = exposeCode[deepPath] || {};
+          const deepPath = "." + (matched?.[1] || "");
+          const moduleExpose: IExposeInfo = exposeCode[deepPath] || {};
           return renderRuntimeCode(
-            exposeCode,
+            moduleExpose,
             currentManifestJson.value.appCode
           );
         }

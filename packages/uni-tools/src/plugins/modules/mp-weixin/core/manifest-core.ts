@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import {
+  fetchFileByPath,
   generateSHA256,
   loadViteConfig,
   uniReadFile,
@@ -9,11 +10,14 @@ import {
 import { getNodeModulesEnvAppCodeFilePath } from "../utils/download";
 import {
   formatCliCommandConfig,
+  getMainAppJsonPath,
   getManifestCdnDirUrl,
   getMfeJson,
   IMfeJson,
   MANIFEST_CND_DIR_URL,
   MANIFEST_NAME,
+  ROOT_APP_CODE,
+  SAVE_CDN_FILE_PATH,
   SERVE_MPWEIXIN_MANIFEST,
   TEMP_FILE_PATH,
 } from "@/config/config";
@@ -83,4 +87,40 @@ export const createManifestManager = (): TGenreManifestJson => {
       this.dependencies = list;
     },
   };
+};
+
+export const getRootMainManifestJson = async (code: string, mode: string): Promise<IManifestJson> => {
+  try {
+    const pageManifest = uniReadFile(
+      path.join(process.env.UNI_OUTPUT_DIR!, MANIFEST_NAME)
+    );
+
+    if (Object.keys(pageManifest).length !== 0) {
+        return pageManifest;
+    }
+  } catch {}
+  try {
+    const nodeModulesManifest = uniReadFile(
+      path.join(SAVE_CDN_FILE_PATH, mode, ROOT_APP_CODE, MANIFEST_NAME)
+    );
+    if (Object.keys(nodeModulesManifest).length !== 0) {
+      return nodeModulesManifest;
+    }
+  } catch {}
+
+  try {
+    const cdnUrl = cdn.getManifestUrl({
+      code,
+      appCode: ROOT_APP_CODE,
+      mode,
+    });
+
+    const manifestJson = await fetchFileByPath(cdnUrl);
+    if (Object.keys(manifestJson).length !== 0) {
+      return manifestJson;
+    }
+  } catch {}
+  return { exposes: {} } as IManifestJson;
+  // const mainManifestJson = uniReadFile(getMainAppJsonPath());
+  // return mainManifestJson;
 };

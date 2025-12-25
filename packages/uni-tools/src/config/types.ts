@@ -1,5 +1,9 @@
 import { IMfeJson } from "./config";
 
+export interface IExposeInfo {
+  path: string;
+  exports: string[];
+}
 export interface IManifestJson {
   mode: string;
   cdn: string;
@@ -11,7 +15,7 @@ export interface IManifestJson {
   publicPath: string;
   apps?: IMfeJson["apps"];
   isServe?: boolean;
-  exposes?: Record<string, string>;
+  exposes?: Record<string, IExposeInfo>;
   pagesJson: {
     pages?: { path: string; style: Record<string, string> }[];
     [k: string]: any;
@@ -33,12 +37,10 @@ export type TGenreManifestJson = {
   dependencies: IManifestJson[];
 };
 
-
 export interface IMainAppFilePlugin {
   copyAppDistModule: (options: { pwd: string }) => void;
   initWatchChange: () => void;
 }
-
 
 export interface IUniConfigOptions {
   exposes?: Record<string, string>;
