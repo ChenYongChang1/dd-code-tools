@@ -1,8 +1,8 @@
 import { IMfeJson } from "./config";
 
 export interface IExposeInfo {
-  path: string;
-  exports: string[];
+  path?: string;
+  exports?: string[];
 }
 export interface IManifestJson {
   mode: string;
