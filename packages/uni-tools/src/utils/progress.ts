@@ -15,14 +15,14 @@ class CliProgressManager {
         format:
           fotmat ||
           `${chalk.yellow("{name}")}: ${chalk.blue("{bar}")} | ${chalk.green(
-            "{percentage}%"
+            "{percentage}%",
           )} | {value}/{total}`,
         barCompleteChar: "\u2588", // 已完成部分（实心方块）
         barIncompleteChar: "\u2591", // 未完成部分（空心方块）
         barGlue: "",
         stopOnComplete: true,
       },
-      Presets.shades_grey
+      Presets.shades_grey,
     );
   }
   createProgressBar(tasks: { name: string; total: number }[]) {
@@ -47,6 +47,5 @@ class CliProgressManager {
     this.multiBar.stop();
   }
 }
-
 
 export default new CliProgressManager();

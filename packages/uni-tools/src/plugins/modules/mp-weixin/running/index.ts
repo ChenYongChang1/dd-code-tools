@@ -9,6 +9,6 @@ export const runParallelAllUni = async (cmd) => {
     `pnpm -r --parallel --workspace-root --filter=* run ${cmd} --b root`,
     {
       stdio: "inherit",
-    }
+    },
   );
 };

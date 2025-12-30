@@ -7,9 +7,12 @@ export class WsServer {
   private static instance: WsServer;
   private wss: WebSocketServer;
   clientMap: Map<string, WebSocket>;
-  httpServer: { server: import("http").Server; start: (type?: string) => void; } | null;
+  httpServer: {
+    server: import("http").Server;
+    start: (type?: string) => void;
+  } | null;
   constructor(
-    public handleMessage?: (opt: { type: E_WS_TYPE; data: any }) => void
+    public handleMessage?: (opt: { type: E_WS_TYPE; data: any }) => void,
   ) {
     this.httpServer = createHttpServer()!;
     this.clientMap = new Map();
@@ -20,7 +23,7 @@ export class WsServer {
    * - 若已创建则复用并更新消息回调
    */
   static getInstance(
-    handleMessage?: (opt: { type: E_WS_TYPE; data: any }) => void
+    handleMessage?: (opt: { type: E_WS_TYPE; data: any }) => void,
   ) {
     if (!WsServer.instance) {
       WsServer.instance = new WsServer(handleMessage);
@@ -38,7 +41,7 @@ export class WsServer {
     });
     this.onMessage(this.handleMessage);
     this.onConnection();
-    this.httpServer!.start('ws');
+    this.httpServer!.start("ws");
   }
   onMessage(callback?: (opt: { type: E_WS_TYPE; data: any }) => void) {
     // WebSocketServer 不支持直接监听 message，必须在 connection 后的 socket 上监听
@@ -96,7 +99,7 @@ export class WsClientServer {
   ws: WebSocket;
   isConnected: boolean;
   constructor(
-    public handleMessage?: (opt: { type: E_WS_TYPE; data: any }) => void
+    public handleMessage?: (opt: { type: E_WS_TYPE; data: any }) => void,
   ) {
     this.handleMessage = handleMessage;
     this.ws = null;
@@ -107,7 +110,7 @@ export class WsClientServer {
    * 获取客户端单例
    */
   static getInstance(
-    handleMessage?: (opt: { type: E_WS_TYPE; data: any }) => void
+    handleMessage?: (opt: { type: E_WS_TYPE; data: any }) => void,
   ) {
     if (!WsClientServer.instance) {
       WsClientServer.instance = new WsClientServer(handleMessage);
@@ -120,7 +123,7 @@ export class WsClientServer {
   connect(appCode: string) {
     if (this.isConnected && this.ws) return;
     this.ws = new WebSocket(
-      `ws://localhost:${WS_PORT}${WS_PATH}?appCode=${appCode}`
+      `ws://localhost:${WS_PORT}${WS_PATH}?appCode=${appCode}`,
     );
     this.ws.on("open", () => {
       // console.log("客户端已连接 WS 服务");

@@ -12,7 +12,10 @@ interface IAddUniCopyPluginHook {
  * - 通过 before/after 钩子记录从源到目标的拷贝行为
  * - 便于在 Manifest 插件中收集运行期拷贝产生的文件清单
  */
-export const addUniCopyPluginHook = ({ before, after }: IAddUniCopyPluginHook) => {
+export const addUniCopyPluginHook = ({
+  before,
+  after,
+}: IAddUniCopyPluginHook) => {
   const { FileWatcher } = require("@dcloudio/uni-cli-shared/dist/watcher");
   const originalCopy = FileWatcher.prototype.copy;
   FileWatcher.prototype.copy = function (from) {
@@ -25,7 +28,10 @@ export const addUniCopyPluginHook = ({ before, after }: IAddUniCopyPluginHook) =
   };
 };
 
-export const copyFilesByTargetPath = (sourcePath: string, targetPath: string) => {
+export const copyFilesByTargetPath = (
+  sourcePath: string,
+  targetPath: string,
+) => {
   if (!fs.existsSync(sourcePath)) return;
   try {
     const targetDir = path.dirname(targetPath);

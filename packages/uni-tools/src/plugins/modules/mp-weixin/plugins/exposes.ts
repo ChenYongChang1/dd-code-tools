@@ -42,7 +42,7 @@ const RUNTIME_NAME_REGEXP = new RegExp(RUNTIME_NAME + "(/.*)?");
 const renderRuntimeCode = (moduleExpose: IExposeInfo, appCode: string) => {
   const deepPath = path.relative(
     path.join(appCode, path.dirname(buildName)),
-    "."
+    ".",
   );
 
   let resultCode = "";
@@ -54,7 +54,7 @@ const renderRuntimeCode = (moduleExpose: IExposeInfo, appCode: string) => {
 };
 export const createExposesPlugin = (
   options: IUniConfigOptions = {},
-  currentManifestJson: TGenreManifestJson
+  currentManifestJson: TGenreManifestJson,
 ): Plugin[] => {
   options.exposes = options.exposes || {};
   let mainAppExposeCode: IExposeInfo = {};
@@ -99,7 +99,7 @@ export const createExposesPlugin = (
           const moduleExpose: IExposeInfo = mainAppExposeCode[deepPath] || {};
           return renderRuntimeCode(
             moduleExpose,
-            currentManifestJson.value.appCode
+            currentManifestJson.value.appCode,
           );
         }
       },
@@ -120,7 +120,6 @@ export const createExposesPlugin = (
             });
           });
         }
-
 
         /**
          * 将主应用 exposes 对应的真实模块发射为 chunk
@@ -152,7 +151,7 @@ export const createExposesPlugin = (
           const moduleId = await this.resolve(options.exposes[i]);
           if (moduleId) {
             const owner = chunks.find(
-              (c) => c.modules && c.modules[moduleId.id]
+              (c) => c.modules && c.modules[moduleId.id],
             );
             if (owner) {
               resolveIdsMap[i] = {

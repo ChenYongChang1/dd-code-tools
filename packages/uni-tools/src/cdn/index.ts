@@ -23,8 +23,8 @@ class UniCdnManager {
     mode: string;
     appCode: string;
   }) {
-    if(!this.HOST){
-      throw Error('请先设置环境变量 MFE_CDN_HOST')
+    if (!this.HOST) {
+      throw Error("请先设置环境变量 MFE_CDN_HOST");
     }
     // this.HOST = this.HOST || loadViteConfig(mode || "dev").MFE_CDN_HOST;
     // const viteEnv = loadViteConfig(mode || "dev").MFE_CDN_HOST;

@@ -6,7 +6,7 @@ import { Plugin } from "vite";
 import { checkIsBuildInChild } from "@/utils/utils";
 
 export const createAppsAssetsPlugin = (
-  manifestJson: TGenreManifestJson
+  manifestJson: TGenreManifestJson,
 ): Plugin => {
   let manifestList: IManifestJson[] = [];
   let isMoved = false;
@@ -19,10 +19,10 @@ export const createAppsAssetsPlugin = (
     },
     buildStart() {
       if (isMoved) return;
-      if(checkIsBuildInChild() && !manifestJson.value.isRoot) return
+      if (checkIsBuildInChild() && !manifestJson.value.isRoot) return;
       const basePath = path.resolve(
         SAVE_CDN_FILE_PATH,
-        manifestJson.value.mode || "dev"
+        manifestJson.value.mode || "dev",
       );
       moveOtherApps({
         base: basePath,

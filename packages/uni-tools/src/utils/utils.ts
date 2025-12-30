@@ -114,7 +114,7 @@ export const walkDir = (outDir: string, emitted: Set<string> = new Set()) => {
   };
   walk(root);
   const merged = Array.from(
-    new Set((Array.from(emitted) as string[]).concat(all))
+    new Set((Array.from(emitted) as string[]).concat(all)),
   ).sort();
   return merged;
 };
@@ -129,7 +129,7 @@ export const walkDir = (outDir: string, emitted: Set<string> = new Set()) => {
 function generateHash(
   content = "",
   algorithm = "sha256",
-  encoding: BinaryToTextEncoding = "hex"
+  encoding: BinaryToTextEncoding = "hex",
 ) {
   if (typeof content !== "string") {
     throw new Error("Content must be a string");
@@ -178,14 +178,14 @@ export const genreFileInfoRow = (row: { fileName: string; source: string }) => {
     fileName,
     fileUrl: `${suffix}${generateSHA256(source?.toString() || "").slice(
       0,
-      8
+      8,
     )}_${name}`,
   };
 };
 
 export const createFileWatcher = (
   filePath: string | string[],
-  opt?: ChokidarOptions
+  opt?: ChokidarOptions,
 ) => {
   const watcher = chokidar.watch(filePath, {
     persistent: true,
