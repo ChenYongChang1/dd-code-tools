@@ -13,7 +13,7 @@ export const createAppsAssetsPlugin = (
   return {
     name: "@dd-code:apps-assets",
     enforce: "pre",
-    async options() {
+    async config() {
       manifestList = await downloadFullApps(manifestJson.value);
       manifestJson.setDependencies(manifestList);
     },

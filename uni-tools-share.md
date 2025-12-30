@@ -542,6 +542,48 @@ graph TD
     P1 -.-> P2 -.-> P3 -.-> P4 -.-> P5
 ```
 
+### 分层视图
+- 基建层
+  - 文件与目录
+    - `writeFiles` 在 packages/uni-tools/src/utils/utils.ts:74
+    - `checkAndgenreDir` 在 packages/uni-tools/src/utils/utils.ts:87
+    - `walkDir` 在 packages/uni-tools/src/utils/utils.ts:100
+  - 内容与监听
+    - `copyFilesByTargetPath` 在 packages/uni-tools/src/utils/copy.ts:22
+    - `createFileWatcher` 在 packages/uni-tools/src/utils/utils.ts:186
+    - `generateSHA256` 在 packages/uni-tools/src/utils/utils.ts:166
+  - 服务与配置
+    - `createHttpServer` 在 packages/uni-tools/src/plugins/modules/mp-weixin/server/http-server.ts:14
+    - 常量与约定 `MFE_NAME` 在 packages/uni-tools/src/config/const.ts:1
+    - CLI 入口与参数在 packages/uni-tools/src/cli.ts:1
+- 领域层
+  - Manifest 管理
+    - `createManifestManager` 在 packages/uni-tools/src/plugins/modules/mp-weixin/core/manifest-core.ts:52
+    - `checkDownloadFilesIsExpired` 在 packages/uni-tools/src/plugins/modules/mp-weixin/core/manifest-core.ts:33
+    - `getRootMainManifestJson` 在 packages/uni-tools/src/plugins/modules/mp-weixin/core/manifest-core.ts:135
+  - Pages 解析与主应用合并
+    - `getPagesJson` 在 packages/uni-tools/src/plugins/modules/mp-weixin/core/uni-pages.ts:19
+    - `renderPagesJsonByArray` 在 packages/uni-tools/src/plugins/modules/mp-weixin/core/app-json.ts:11
+    - `genreNewAppJson` 在 packages/uni-tools/src/plugins/modules/mp-weixin/core/app-json.ts:43
+- 应用层
+  - 插件链
+    - `createExposesPlugin` 在 packages/uni-tools/src/plugins/modules/mp-weixin/plugins/exposes.ts:55
+    - `createAppsAssetsPlugin` 在 packages/uni-tools/src/plugins/modules/mp-weixin/plugins/assets.ts:9
+    - `createManifestPlugin` 在 packages/uni-tools/src/plugins/modules/mp-weixin/plugins/manifest-plugin.ts:94
+    - 主应用聚合与同步在 packages/uni-tools/src/plugins/modules/mp-weixin/plugins/main-app.ts:1
+  - 产物采集与发布
+    - `copyFilesToPublishDir` 在 packages/uni-tools/src/plugins/modules/mp-weixin/plugins/manifest-plugin.ts:85
+    - 其他应用移动在 packages/uni-tools/src/plugins/modules/mp-weixin/index.ts:20
+- 接入层
+  - CLI 与批量运行
+    - `runAll` 命令定义在 packages/uni-tools/src/cli.ts:33
+    - 并行运行 `runParallelAllUni` 在 packages/uni-tools/src/plugins/modules/mp-weixin/running/index.ts:6
+  - 环境与变量
+    - `formatCliCommandConfig` 在 packages/uni-tools/src/config/config.ts:146
+    - `.env` 变量解析在 packages/uni-tools/src/utils/utils.ts:94
+  - 运行时接入
+    - 业务代码通过 `@dd-code/runtime` 使用主应用导出，在 packages/uni-tools/src/plugins/modules/mp-weixin/plugins/exposes.ts:42
+
 ## 9. 结语
 
 `@dd-code/uni-tools` 不仅仅是一个构建工具，它是一套完整的**小程序微前端治理体系**。通过严格的物理隔离和灵活的运行时聚合，它成功解决了巨石应用的维护难题，让百人团队协作成为可能。
