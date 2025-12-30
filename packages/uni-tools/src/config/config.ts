@@ -26,20 +26,20 @@ export const BASE_PROJECT_FILES = ["project.config.json"];
 // CDN 文件保存路径
 export const SAVE_CDN_FILE_PATH = path.join(
   process.cwd(),
-  "node_modules/@dd-code/uni-files"
+  "node_modules/@dd-code/uni-files",
 );
 export const MFE_MAIN_OUTDIT_FILEPATH = path.join(
   process.cwd(),
-  "node_modules/@dd-code/__main-pwd.txt"
+  "node_modules/@dd-code/__main-pwd.txt",
 );
 export const SERVE_MPWEIXIN_MANIFEST = path.join(
   process.cwd(),
-  "node_modules/@dd-code/manifest-list.json"
+  "node_modules/@dd-code/manifest-list.json",
 );
 
 export const TEMP_FILE_PATH = path.join(
   process.cwd(),
-  "node_modules/@dd-code/current-files"
+  "node_modules/@dd-code/current-files",
 );
 
 // 发布目录路径
@@ -176,7 +176,7 @@ export const getNodeModuleMainAppJSon = (mode, appCode) => {
     SAVE_CDN_FILE_PATH,
     mode || "dev",
     appCode || "",
-    "app.json"
+    "app.json",
   );
 };
 

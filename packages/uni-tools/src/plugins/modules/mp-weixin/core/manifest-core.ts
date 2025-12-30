@@ -107,8 +107,10 @@ export const createManifestManager = (): TGenreManifestJson => {
  * 从 CDN 获取主应用 Manifest（ROOT_APP_CODE）
  * - 仅用于校验/兜底：优先使用本地 dist 或缓存 node_modules 的 Manifest
  */
-export const downloadMainAppManifestJson = async (currentManifest: IManifestJson): Promise<IManifestJson> => {
-  const { mode, code } = currentManifest
+export const downloadMainAppManifestJson = async (
+  currentManifest: IManifestJson,
+): Promise<IManifestJson> => {
+  const { mode, code } = currentManifest;
   try {
     const cdnUrl = cdn.getManifestUrl({
       code,
@@ -118,9 +120,9 @@ export const downloadMainAppManifestJson = async (currentManifest: IManifestJson
 
     const manifestJson = await fetchFileByPath(cdnUrl);
     return manifestJson;
-  } catch { }
+  } catch {}
   return {} as IManifestJson;
-}
+};
 
 /**
  * 读取根主应用 Manifest（优先级：dist > node_modules 缓存 > CDN）
@@ -132,41 +134,49 @@ export const downloadMainAppManifestJson = async (currentManifest: IManifestJson
  *   2) node_modules 缓存目录中的 app.json（save cdn file path）
  *   3) 远端 CDN 拉取的 Manifest（兜底）
  */
-export const getRootMainManifestJson = async (currentManifest: IManifestJson): Promise<IManifestJson> => {
-  const { mode } = currentManifest
+export const getRootMainManifestJson = async (
+  currentManifest: IManifestJson,
+): Promise<IManifestJson> => {
+  const { mode } = currentManifest;
   // 是否内部打包
-  const isInnerBuild = checkIsInnerBuild()
+  const isInnerBuild = checkIsInnerBuild();
   // 是否ws
-  const isWsBuild = currentManifest.isServe
-  const needCheckHash = !(isWsBuild || isInnerBuild)
-  const originHostManifestJson = await downloadMainAppManifestJson(currentManifest)
+  const isWsBuild = currentManifest.isServe;
+  const needCheckHash = !(isWsBuild || isInnerBuild);
+  const originHostManifestJson =
+    await downloadMainAppManifestJson(currentManifest);
   const checkHash = (target) => {
-    if (originHostManifestJson?.hash && needCheckHash && originHostManifestJson?.hash !== target.hash) {
-      throw new Error("originHostManifestJson hash not equal")
+    if (
+      originHostManifestJson?.hash &&
+      needCheckHash &&
+      originHostManifestJson?.hash !== target.hash
+    ) {
+      throw new Error("originHostManifestJson hash not equal");
     }
-  }
+  };
   try {
-    const distPagePath = path.join(process.env.UNI_OUTPUT_DIR!, MANIFEST_NAME)
-    const pageManifest = uniReadFile(
-      distPagePath
-    );
-    checkHash(pageManifest)
+    const distPagePath = path.join(process.env.UNI_OUTPUT_DIR!, MANIFEST_NAME);
+    const pageManifest = uniReadFile(distPagePath);
+    checkHash(pageManifest);
     console.log(`distPagePath done`);
     if (Object.keys(pageManifest).length !== 0) {
       return pageManifest;
     }
-  } catch { }
+  } catch {}
   try {
-    const nodeModulePath = path.join(SAVE_CDN_FILE_PATH, mode, ROOT_APP_CODE, MANIFEST_NAME)
-    const nodeModulesManifest = uniReadFile(
-      nodeModulePath
+    const nodeModulePath = path.join(
+      SAVE_CDN_FILE_PATH,
+      mode,
+      ROOT_APP_CODE,
+      MANIFEST_NAME,
     );
-    checkHash(nodeModulesManifest)
+    const nodeModulesManifest = uniReadFile(nodeModulePath);
+    checkHash(nodeModulesManifest);
     console.log(`nodeModulePath done`);
     if (Object.keys(nodeModulesManifest).length !== 0) {
       return nodeModulesManifest;
     }
-  } catch { }
-  console.log('origin done');
-  return originHostManifestJson
+  } catch {}
+  console.log("origin done");
+  return originHostManifestJson;
 };

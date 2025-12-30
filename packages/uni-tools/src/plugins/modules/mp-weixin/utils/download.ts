@@ -73,7 +73,7 @@ export const downloadManifestJson = async (urls: string[]) => {
 export async function downloadFilesByManifestJson(
   manifestJson,
   outDir,
-  onDownload?: (index: number, total: number) => void
+  onDownload?: (index: number, total: number) => void,
 ) {
   const { cdn, appCode, publicPath, files } = manifestJson;
   for (const i in files) {
@@ -93,7 +93,7 @@ export const downloadProjectFiles = async (manifestList: IManifestJson[]) => {
     manifestList.map((i) => ({
       name: i.appCode,
       total: i.files.length,
-    }))
+    })),
   );
   for (const i in manifestList) {
     const manifestJson = manifestList[i];
@@ -102,7 +102,7 @@ export const downloadProjectFiles = async (manifestList: IManifestJson[]) => {
       path.resolve(SAVE_CDN_FILE_PATH, manifestJson.mode || "dev"),
       (index, total) => {
         CliProgressManager.updateProgressBar(manifestJson.appCode, index + 1);
-      }
+      },
     );
     downloadList.push(fn);
   }

@@ -72,7 +72,7 @@ class CollectFiles {
               genreFileInfoRow({
                 fileName: fullFileName,
                 source: fs.readFileSync(absFilePath, "utf8"),
-              })
+              }),
             );
           });
         }
@@ -92,7 +92,7 @@ class CollectFiles {
 }
 
 export const createManifestPlugin = (
-  manifestJson: TGenreManifestJson
+  manifestJson: TGenreManifestJson,
 ): Plugin => {
   const collectFiles = new CollectFiles();
   return {
@@ -122,7 +122,7 @@ export const createManifestPlugin = (
         ? process.env.MFE_ROOT_OUTPUT_DIR!
         : path.resolve(
             process.env.MFE_ROOT_OUTPUT_DIR!,
-            manifestJson.value.appCode
+            manifestJson.value.appCode,
           );
       const filePath = path.resolve(sourcePath, MANIFEST_NAME);
       collectFiles.collectCopyFiles();

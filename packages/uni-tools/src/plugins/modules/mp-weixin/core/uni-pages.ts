@@ -3,7 +3,9 @@ import path from "path";
 // @ts-ignore
 const { initPreContext } = require("@dcloudio/uni-cli-shared/dist/preprocess");
 const { preprocess } = require("@dcloudio/uni-cli-shared/lib/preprocess");
-const { getPreVueContext } = require("@dcloudio/uni-cli-shared/dist/preprocess/context");
+const {
+  getPreVueContext,
+} = require("@dcloudio/uni-cli-shared/dist/preprocess/context");
 
 export const initPrePagesJson = () => {
   const pagesPath = path.resolve(process.cwd(), "src/pages.json");

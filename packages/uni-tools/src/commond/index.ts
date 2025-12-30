@@ -5,7 +5,7 @@ import path from "path";
 
 export const excuteUniCommand = async (
   command: string,
-  opt?: { isRoot?: boolean; appCode?: string; buildDir?: string }
+  opt?: { isRoot?: boolean; appCode?: string; buildDir?: string },
 ) => {
   process.env.MFE_TARGET_DIR = opt?.buildDir || "";
   const { isRoot, appCode } = opt || {};

@@ -1,4 +1,8 @@
-import { formatCliCommandConfig, getMfeJson, MANIFEST_NAME } from "@/config/config";
+import {
+  formatCliCommandConfig,
+  getMfeJson,
+  MANIFEST_NAME,
+} from "@/config/config";
 import { checkAndgenreDir, createFileWatcher } from "@/utils/utils";
 import { copyFilesByTargetPath } from "@/utils/copy";
 import fs from "fs";
@@ -37,17 +41,13 @@ export const getAppsManifestList = (mode: string) => {
 export const startLocalSubApps = (
   subs: { appCode: string; dir: string }[],
   platform = "mp-weixin",
-  mode = "development"
+  mode = "development",
 ) => {
   const procs = subs.map(({ appCode }) =>
-    spawn(
-      "uni",
-      ["-p", platform, "--mode", mode, `--subpackage=${appCode}`],
-      {
-        cwd: process.cwd(),
-        stdio: "inherit",
-      }
-    )
+    spawn("uni", ["-p", platform, "--mode", mode, `--subpackage=${appCode}`], {
+      cwd: process.cwd(),
+      stdio: "inherit",
+    }),
   );
   return procs;
 };
@@ -55,7 +55,7 @@ export const startLocalSubApps = (
 export const startDistWatcher = (
   mainPwd: string,
   onReady: () => void,
-  onChange?: (data: any) => void
+  onChange?: (data: any) => void,
 ) => {
   const root = process.env.MFE_SOURCE_OUTPUT_DIR;
   if (!root) return;

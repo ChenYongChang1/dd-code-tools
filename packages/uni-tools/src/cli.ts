@@ -29,17 +29,19 @@ const fetchGit = program.command("fetch").description("拉取 uni 项目到本�
 const runAll = program.command("runAll").description("运行所有 uni 项目");
 
 fetchGit.action(async () => {
-  await fetchAppsRepo()
+  await fetchAppsRepo();
 });
 // pushCdn.option("--mode <mode>", "模式", "dev").action(({ mode }) => {
 //   pushDistToCdn(mode);
 // });
 
-addUniOptions(runAll).option("--cmd <execCmd>", "启动命令", "dev:mp-weixin").action(async ({ mode, p: platform, cmd }) => {
-  if(platform === 'mp-weixin') {
-    runParallelAllUni(cmd);
-  }
-});
+addUniOptions(runAll)
+  .option("--cmd <execCmd>", "启动命令", "dev:mp-weixin")
+  .action(async ({ mode, p: platform, cmd }) => {
+    if (platform === "mp-weixin") {
+      runParallelAllUni(cmd);
+    }
+  });
 
 addUniOptions(dev).action(({ mode, p: platform, b }) => {
   process.env.MFE_BUILD_MODE = EBuildMode.SERVE;

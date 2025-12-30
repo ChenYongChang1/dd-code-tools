@@ -23,7 +23,7 @@ import { createExposesPlugin } from "./modules/mp-weixin/plugins/exposes";
  *   5) post: main-app（serve/watch/merge 核心逻辑）
  */
 export const createMpWeixinUniPlugin = (
-  options: IUniConfigOptions = {}
+  options: IUniConfigOptions = {},
 ): (Plugin | Plugin[])[] => {
   const currentManifestJson = createManifestManager();
   options.exposes = options.exposes || {};

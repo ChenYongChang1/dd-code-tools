@@ -46,7 +46,7 @@ const getMainProcessLoop = async () => {
 };
 export const resetOutDir = async (
   currentManifestJson: TGenreManifestJson,
-  config: UserConfig
+  config: UserConfig,
 ) => {
   const currentManifest = currentManifestJson.value;
   /**
@@ -64,8 +64,8 @@ export const resetOutDir = async (
     if (mainProcess) {
       config.build!.outDir = `${mainProcess.UNI_OUTPUT_DIR}/${currentManifest.appCode}`;
       process.env.MFE_INNER_BUILD = "true";
-    }else{
-      process.env.MFE_TARGET_DIR = ""
+    } else {
+      process.env.MFE_TARGET_DIR = "";
     }
     // mainProcess.UNI_OUTPUT_DIR
 
@@ -78,7 +78,7 @@ export const resetOutDir = async (
   process.env.MFE_SOURCE_OUTPUT_DIR = config.build!.outDir;
   process.env.MFE_ROOT_OUTPUT_DIR = process.env.MFE_SOURCE_OUTPUT_DIR?.replace(
     exp,
-    "/"
+    "/",
   ).replace(/\/$/, "");
   // if (!currentManifestJson.value.isRoot)
   // console.log(config);

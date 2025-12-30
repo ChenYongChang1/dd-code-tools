@@ -10,22 +10,24 @@ import { uniFsReadJSONFile, writeFiles } from "@/utils/utils";
  */
 export const renderPagesJsonByArray = (
   appPages: IManifestJson[],
-  pageJson: any
+  pageJson: any,
 ) => {
   for (const app of appPages) {
     const { pages = [] } = getPagesJson(
       JSON.stringify(app?.pagesJson || {}),
-      true
+      true,
     );
     const currentTemp = {
       root: app.appCode,
       pages: [...pages],
     };
     pageJson.subPackages = pageJson.subPackages.filter(
-      (i: any) => i.root !== currentTemp.root
+      (i: any) => i.root !== currentTemp.root,
     );
     pageJson.subPackages.push(currentTemp);
-    pageJson.subPackages = pageJson.subPackages.filter((i: any) => i.pages.length);
+    pageJson.subPackages = pageJson.subPackages.filter(
+      (i: any) => i.pages.length,
+    );
   }
   if (!pageJson.tabBar) {
     delete pageJson.tabBar;
@@ -35,7 +37,7 @@ export const renderPagesJsonByArray = (
 
 export const genreFullMainAppJsonByManifestList = (
   appJson: Record<string, any>,
-  manifestList: IManifestJson[]
+  manifestList: IManifestJson[],
 ) => {
   return renderPagesJsonByArray(manifestList, appJson);
 };
@@ -43,11 +45,11 @@ export const genreFullMainAppJsonByManifestList = (
 export const genreNewAppJson = (
   outputPageJsonPath: string,
   appJson: Record<string, any>,
-  manifestList: IManifestJson[]
+  manifestList: IManifestJson[],
 ) => {
   const newAppJSon = genreFullMainAppJsonByManifestList(
     { subPackages: [], ...appJson },
-    manifestList
+    manifestList,
   );
   const old = uniFsReadJSONFile(outputPageJsonPath) || {};
   const nextStr = JSON.stringify(newAppJSon);

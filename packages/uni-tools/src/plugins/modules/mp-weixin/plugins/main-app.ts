@@ -41,7 +41,7 @@ import {
  *   - `copyFilesByTargetPath` 与 `genreNewAppJson` 均内置内容比较，防止频繁重启
  */
 const filterManifestJsonListAndMainPageJson = (
-  manifestJsonList: IManifestJson[]
+  manifestJsonList: IManifestJson[],
 ) => {
   const outputPageJsonPath = getMainAppJsonPath();
   return {
@@ -58,7 +58,7 @@ const createMainAppServer = () => {
       const manifestPath = path.join(
         process.env.UNI_OUTPUT_DIR!,
         data.appCode,
-        MANIFEST_NAME
+        MANIFEST_NAME,
       );
 
       try {
@@ -76,7 +76,7 @@ const createMainAppServer = () => {
 
 const createMainAppClient = (
   manifestJson: TGenreManifestJson,
-  onInit: (data: any) => void
+  onInit: (data: any) => void,
 ) => {
   const client = WsClientServer.getInstance((opt) => {
     if (opt.type === E_WS_TYPE.INIT) {
@@ -88,7 +88,7 @@ const createMainAppClient = (
 };
 
 export const createMainAppPlugin = (
-  manifestJson: TGenreManifestJson
+  manifestJson: TGenreManifestJson,
 ): Plugin[] => {
   const state: {
     mainPwd: string;
@@ -133,7 +133,7 @@ export const createMainAppPlugin = (
             ...change,
             appCode: manifestJson.value.appCode,
           });
-      }
+      },
     );
   };
 

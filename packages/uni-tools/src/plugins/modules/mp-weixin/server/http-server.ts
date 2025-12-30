@@ -30,7 +30,7 @@ export const createHttpServer = () => {
       const originKey = type || "http";
       server.listen(WS_PORT, () => {
         console.log(
-          `[uni-${originKey}] ${originKey}://localhost:${WS_PORT}${HTTP_PATH}`
+          `[uni-${originKey}] ${originKey}://localhost:${WS_PORT}${HTTP_PATH}`,
         );
       });
     },
