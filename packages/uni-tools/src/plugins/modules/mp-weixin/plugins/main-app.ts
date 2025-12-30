@@ -202,6 +202,7 @@ export const createMainAppPlugin = (
     {
       name: "@dd-code:main-app:sync",
       closeBundle() {
+        // 针对的是ws模块 可以忽略
         const start = isServe();
         if (!start || isBuild()) return;
         if (isRoot()) return;
@@ -213,6 +214,7 @@ export const createMainAppPlugin = (
     {
       name: "@dd-code:main-app:watch",
       async closeBundle() {
+        // 主应用 启动连调模式的时候 监听所有子应用 Manifest 文件变化
         if (isBuild()) return;
         if (isServe()) return;
         if (!checkIsBuildInChild()) return;

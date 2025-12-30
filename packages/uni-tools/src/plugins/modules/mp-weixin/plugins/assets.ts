@@ -19,7 +19,7 @@ export const createAppsAssetsPlugin = (
     },
     buildStart() {
       if (isMoved) return;
-      if(checkIsBuildInChild() && !manifestJson.value.isRoot) return
+      if (checkIsBuildInChild() && !manifestJson.value.isRoot) return
       const basePath = path.resolve(
         SAVE_CDN_FILE_PATH,
         manifestJson.value.mode || "dev"

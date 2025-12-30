@@ -60,7 +60,7 @@ export const createExposesPlugin = (
   let mainAppExposeCode: IExposeInfo = {};
   return [
     {
-      name: "@chagee:uni-exposes",
+      name: "@dd-code:uni-exposes",
       enforce: "post",
       /**
        * 读取主应用的 exposes 配置
