@@ -1,8 +1,6 @@
 import {
   BASE_APP_CODE_LIST,
   formatCliCommandConfig,
-  getMainAppJson,
-  getMainAppPages,
   getMfeJson,
   IMfeJson,
   ROOT_APP_CODE,
@@ -13,6 +11,7 @@ import { fetchFileByPath, writeFiles } from "@/utils/utils";
 import CliProgressManager from "@/utils/progress";
 import path from "path";
 import { IManifestJson } from "@/config/types";
+import { getMainAppPages } from "@/config/manifest";
 
 export const getDownloadedFilePath = (conf) => {
   if (!conf.mode && !conf.env) {

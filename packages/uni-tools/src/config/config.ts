@@ -2,7 +2,6 @@ import path from "path";
 import { MFE_NAME } from "./const";
 import { EPlaform } from "./enum";
 import { fetchFileByPath, loadViteConfig, uniReadFile } from "@/utils/utils";
-import uniCdn from "@/cdn";
 import { IManifestJson } from "./types";
 export interface IMfeJson {
   // isRoot: boolean;
@@ -112,33 +111,6 @@ export const getMfeJson = (): IMfeJson => {
   return json;
 };
 
-export const getMainAppJson = async (mode: string) => {
-  // const mainUrl = getManifestJsonUrl(mode);
-  const env = formatCliCommandConfig(mode);
-  const baseUrl = uniCdn.getManifestUrl({
-    code: env.code,
-    appCode: ROOT_APP_CODE,
-    mode,
-  });
-  const mainJson = await fetchFileByPath(baseUrl);
-  return mainJson;
-};
-export const getMainAppPages = async (mode: string) => {
-  const mainJson = await getMainAppJson(mode);
-  return (
-    mainJson.apps || [
-      {
-        appCode: "modules/bwzb",
-      },
-      {
-        appCode: "modules/manage",
-      },
-      {
-        appCode: "login",
-      },
-    ]
-  );
-};
 
 export const getPlatform = () => {
   return process.env.UNI_PLATFORM || "h5";
@@ -183,4 +155,5 @@ export const getNodeModuleMainAppJSon = (mode, appCode) => {
 export const getMainAppJsonPath = () =>
   path.join(process.env.UNI_OUTPUT_DIR!, "app.json");
 
-export const getMainManifestJson = () => {};
+export const getMainManifestJson = () => { };
+

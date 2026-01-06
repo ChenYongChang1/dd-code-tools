@@ -1,9 +1,10 @@
 import {
+  formatCliCommandConfig,
   getManifestCdnDirUrl,
-  MANIFEST_CND_DIR_URL,
   MANIFEST_NAME,
+  ROOT_APP_CODE,
 } from "@/config/config";
-import { loadViteConfig } from "@/utils/utils";
+import { fetchFileByPath } from "@/utils/utils";
 
 class UniCdnManager {
   HOST: string;
@@ -49,3 +50,4 @@ class UniCdnManager {
 }
 
 export default new UniCdnManager();
+
