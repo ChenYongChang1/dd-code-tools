@@ -119,13 +119,14 @@ export const createExposesPlugin = (
               fileName: buildName.replace("{template}", keyDir),
             });
           });
+          return
         }
 
         /**
          * 将主应用 exposes 对应的真实模块发射为 chunk
          * - 便于在 generateBundle 阶段对模块所属 chunk 做反查，拿到打包后的路径与导出列表
          */
-        for (const [alias, spec] of Object.entries(options.exposes || {})) {
+        for (const [alias, spec] of Object.entries(options?.exposes || {})) {
           const r = await this.resolve(spec);
           if (r) {
             const id = r?.id;
