@@ -8,6 +8,15 @@ import {
 import { proxyWinVarName } from "../js/config";
 import { postCssPlugin } from "../css";
 
+function isStyleRequest(id: string) {
+  const [file = "", query = ""] = (id || "").split("?");
+  const isCssFile = /\.(css|scss|sass|less)$/.test(file);
+  const isVueStyleBlock =
+    /\.vue$/.test(file) && new URLSearchParams(query).get("type") === "style";
+
+  return isCssFile || isVueStyleBlock;
+}
+
 export function transformJs(
   code: string,
   id: string,
@@ -37,11 +46,7 @@ export async function transformCss(
   include: string[],
   exclude: string[]
 ) {
-  const file = (id || "").split("?")[0] || "";
-  const isCssFile = /(sc|le|c)?ss$/.test(id);
-  // if (!isFilterCss || !isStyleRequest(id) || !code) {
-
-  if (!isFilterCss || !isCssFile || !code) {
+  if (!isFilterCss || !isStyleRequest(id) || !code) {
     return undefined as any;
   }
   const defaultPerfix = `.${appCode}`;
