@@ -38,7 +38,9 @@ export async function transformCss(
   exclude: string[]
 ) {
   const file = (id || "").split("?")[0] || "";
-  const isCssFile = /(sc|le|c)?ss$/.test(file);
+  const isCssFile = /(sc|le|c)?ss$/.test(id);
+  // if (!isFilterCss || !isStyleRequest(id) || !code) {
+
   if (!isFilterCss || !isCssFile || !code) {
     return undefined as any;
   }
