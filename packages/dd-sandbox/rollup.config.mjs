@@ -5,8 +5,6 @@ import json from "@rollup/plugin-json";
 import dts from "rollup-plugin-dts";
 // import terser from '@rollup/plugin-terser';
 
-// 检查是否为开发模式（用于 link 调试）
-// 条件性 external - 开发模式下不 external，生产模式下 external
 const external = ["vite", "@dd-code/babel-tools"];
 
 export default [
@@ -14,31 +12,24 @@ export default [
     input: "src/index.ts",
     output: [
       {
-        file: "dist/index.cjs.js",
+        file: "dist/index.cjs",
         format: "cjs",
       },
       {
-        file: "dist/index.mjs.js",
+        file: "dist/index.mjs",
         format: "es",
       },
     ],
     external,
     plugins: [
       resolve({
-        preferBuiltins: true, // 优先使用 Node.js 内置模块
+        preferBuiltins: true,
       }),
       commonjs(),
       json(),
-      // terser({
-      //   compress: {
-      //     drop_console: true, // 移除 console 语句
-      //     drop_debugger: true, // 移除 debugger 语句
-      //   },
-      //   mangle: true, // 混淆变量名
-      // }),
       typescript({
         tsconfig: "./tsconfig.json",
-        declaration: false, // 类型声明文件单独生成
+        declaration: false,
       }),
     ],
   },
@@ -46,12 +37,12 @@ export default [
     input: "src/shared.ts",
     output: [
       {
-        file: "dist/shared.cjs.js",
+        file: "dist/shared.cjs",
         format: "cjs",
         minifyInternalExports: true,
       },
       {
-        file: "dist/shared.mjs.js",
+        file: "dist/shared.mjs",
         format: "es",
         minifyInternalExports: true,
       },
@@ -59,20 +50,13 @@ export default [
     external,
     plugins: [
       resolve({
-        preferBuiltins: true, // 优先使用 Node.js 内置模块
+        preferBuiltins: true,
       }),
       commonjs(),
       json(),
-      // terser({
-      //   compress: {
-      //     drop_console: true, // 移除 console 语句
-      //     drop_debugger: true, // 移除 debugger 语句
-      //   },
-      //   mangle: true, // 混淆变量名
-      // }),
       typescript({
         tsconfig: "./tsconfig.json",
-        declaration: false, // 类型声明文件单独生成
+        declaration: false,
       }),
     ],
   },

@@ -1,6 +1,6 @@
 {
   "name": "@dd-code/shared",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Shared utilities and common code",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -9,8 +9,8 @@
     "dist"
   ],
   "scripts": {
-    "dev": "rollup -c --watch",
-    "build": "rollup -c",
+    "dev": "rollup -c rollup.config.mjs --watch",
+    "build": "rollup -c rollup.config.mjs",
     "clean": "rm -rf dist"
   },
   "dependencies": {},

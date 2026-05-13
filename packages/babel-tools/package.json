@@ -1,9 +1,9 @@
 {
   "name": "@dd-code/babel-tools",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Babel plugin to extract and replace Chinese literals with i18n keys",
-  "main": "./dist/index.esm.js",
-  "module": "./dist/index.esm.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
@@ -12,13 +12,13 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.esm.js",
-      "require": "./dist/index.cjs.js"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
     }
   },
   "scripts": {
-    "dev": "rollup -c --watch",
-    "build": "rollup -c",
+    "dev": "rollup -c rollup.config.mjs --watch",
+    "build": "rollup -c rollup.config.mjs",
     "clean": "rimraf dist"
   },
   "peerDependencies": {

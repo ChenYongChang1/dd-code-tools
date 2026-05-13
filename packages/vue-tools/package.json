@@ -1,6 +1,6 @@
 {
   "name": "@dd-code/vue-tools",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "vue-specific tools and utilities",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -29,8 +29,8 @@
     }
   },
   "scripts": {
-    "dev": "rollup -c --watch",
-    "build": "rollup -c",
+    "dev": "rollup -c rollup.config.mjs --watch",
+    "build": "rollup -c rollup.config.mjs",
     "clean": "rm -rf dist"
   },
   "dependencies": {
