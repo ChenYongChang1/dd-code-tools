@@ -1,6 +1,6 @@
 {
   "name": "@dd-code/dd-sandbox",
-  "version": "1.0.8",
+  "version": "1.0.12",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
