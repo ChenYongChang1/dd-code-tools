@@ -15,9 +15,9 @@
     "build:vite-tools": "pnpm --filter=@dd/vite-tools build",
     "build:shared": "pnpm --filter=@dd/shared build",
     "changeset": "changeset",
-    "version-packages": "changeset version",
+    "version": "changeset version",
     "release": "pnpm build && changeset publish",
-    "release:all": "pnpm version-packages && pnpm release",
+    "release:all": "pnpm version && pnpm release",
     "release:login": "npm login --registry=https://registry.npmjs.org/",
     "release:whoami": "npm whoami --registry=https://registry.npmjs.org/"
   },

@@ -5,7 +5,7 @@ export const viteLoadPlugin = (
 ) => {
   if (id.indexOf("virtual:@dd-code/dd-sandbox/shared") !== -1) {
     const res = `
-            import { getProxyWin } from "@dd-code/dd-sandbox/shared";
+            import { getProxyWin } from "@dd-code/dd-sandbox-runtime";
             const proxyWin = getProxyWin('${appCode}', ${JSON.stringify(
       sandboxOptions
     )});

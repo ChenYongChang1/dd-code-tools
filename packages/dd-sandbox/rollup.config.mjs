@@ -5,7 +5,7 @@ import json from "@rollup/plugin-json";
 import dts from "rollup-plugin-dts";
 // import terser from '@rollup/plugin-terser';
 
-const external = ["vite", "@dd-code/babel-tools"];
+const external = ["vite", "@dd-code/babel-tools", "@dd-code/dd-sandbox-runtime"];
 
 export default [
   {
