@@ -23,7 +23,7 @@ export const excuteFindDep = async (options: {
   if (!fileName) {
     throw Error("请输入文件名称");
   }
-  await findDepFiles(options);
+  await findDepFiles({ fileName, config });
 };
 
 export const excuteCopyFiles = async (_targetPath: string) => {

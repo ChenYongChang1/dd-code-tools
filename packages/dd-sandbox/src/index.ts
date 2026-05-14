@@ -28,7 +28,11 @@ export default (options: SandboxOptions): Plugin[] => {
   const appCode = options.appCode || "app";
   const filter = createFilter(
     options.include || [],
-    options.exclude || [/.*\/dd-sandbox\/.*/, "*virtual:@dd-code/dd-sandbox*"]
+    options.exclude || [
+      /.*\/dd-sandbox\/.*/,
+      /.*\/dd-sandbox-runtime\/.*/,
+      "*virtual:@dd-code/dd-sandbox*",
+    ]
   );
   // vue :deep postcss 处理插件
   const sandboxOptions = options.sandboxOptions || {};

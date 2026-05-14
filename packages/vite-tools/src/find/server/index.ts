@@ -3,13 +3,34 @@ import path from "path";
 import { parse, traverse } from "@dd-code/babel-tools";
 // import { TransformResult, build, resolveConfig } from "vite";
 import fs from "fs";
-import { execSync } from "child_process";
 // @ts-ignore
 
 const FILE_NAME = __dirname;
 const BASE = process.cwd();
 
 const getBaseConfigPath = (str: string) => path.resolve(BASE, str);
+
+const stripModuleQuery = (filePath: string) =>
+  filePath.replace(/^\0/, "").split("?")[0];
+
+const toAbsolutePath = (filePath: string, root = BASE) => {
+  const cleanPath = stripModuleQuery(filePath);
+  return path.normalize(
+    path.isAbsolute(cleanPath) ? cleanPath : path.resolve(root, cleanPath)
+  );
+};
+
+const toPathKey = (filePath: string, root = BASE) =>
+  toAbsolutePath(filePath, root).toLowerCase();
+
+const isSubPath = (filePath: string, root: string) => {
+  const relativePath = path.relative(root, filePath);
+  return (
+    Boolean(relativePath) &&
+    !relativePath.startsWith("..") &&
+    !path.isAbsolute(relativePath)
+  );
+};
 
 const getFullFiles = (dirPath: string) => {
   let results: string[] = [];
@@ -136,17 +157,17 @@ export const removeDepFiles = async (config: string) => {
           const moduleMap = modules
             .filter((i) => !i.includes("node_modules"))
             .reduce((data, item) => {
-              data[item] = true;
+              data[toPathKey(item)] = true;
               return data;
             }, {} as Record<string, boolean>);
 
           configRelatedFiles.forEach((file) => {
-            moduleMap[file] = true;
+            moduleMap[toPathKey(file)] = true;
           });
 
           const unUsedFiles = fullFilesPath.filter(
             (filePath) =>
-              !moduleMap[filePath] &&
+              !moduleMap[toPathKey(filePath)] &&
               !ignoreCtx.some((i) => filePath.endsWith(i))
           );
           removeFiles(unUsedFiles);
@@ -184,58 +205,91 @@ class FindDepFiles {
     console.log(`文件内容已生成-->\n${this.BASE_FILE_PATH}`);
   }
   checkModuleIsNeedCopy(result: Set<string>, moduleId: string) {
+    const filePath = toAbsolutePath(moduleId, this.root);
     return (
       moduleId &&
-      !result.has(moduleId) &&
-      moduleId.startsWith(this.root) &&
-      fs.existsSync(moduleId) &&
-      !moduleId.includes("node_modules")
+      !result.has(filePath) &&
+      (filePath === this.root || isSubPath(filePath, this.root)) &&
+      fs.existsSync(filePath) &&
+      !filePath.includes(`node_modules${path.sep}`)
     );
   }
-  getDependencesFiles(that: any, moduleId: string, result = new Set<string>()) {
-    if (this.checkModuleIsNeedCopy(result, moduleId)) {
-      result.add(moduleId);
-      // [id]: {id, children: []}
-      // deepResult.push(row);
-      const moduleInfo = that.getModuleInfo(moduleId);
-      if (moduleInfo) {
-        const { importedIds, dynamicallyImportedIds } = moduleInfo;
-        const resultImports = [...importedIds, ...dynamicallyImportedIds];
-        resultImports.forEach((dep) => {
-          this.getDependencesFiles(that, dep, result);
-        });
+  getModuleIdsByFilePath(that: any, moduleId: string) {
+    const targetKey = toPathKey(moduleId, this.root);
+    const moduleIds: string[] = [];
+    for (const id of Array.from(that.getModuleIds()) as string[]) {
+      if (toPathKey(id, this.root) === targetKey) {
+        moduleIds.push(id);
       }
     }
+    return moduleIds.length ? moduleIds : [moduleId];
+  }
+  getDependencesFiles(
+    that: any,
+    moduleId: string,
+    result = new Set<string>(),
+    visitedModuleIds = new Set<string>()
+  ) {
+    const resolvedModuleIds = this.getModuleIdsByFilePath(that, moduleId);
+    resolvedModuleIds.forEach((resolvedModuleId) => {
+      if (visitedModuleIds.has(resolvedModuleId)) {
+        return;
+      }
+      visitedModuleIds.add(resolvedModuleId);
+      const filePath = toAbsolutePath(resolvedModuleId, this.root);
+      if (this.checkModuleIsNeedCopy(result, filePath)) {
+        result.add(filePath);
+      }
+      const moduleInfo = that.getModuleInfo(resolvedModuleId);
+      if (!moduleInfo) {
+        return;
+      }
+      const { importedIds, dynamicallyImportedIds } = moduleInfo;
+      const resultImports = [...importedIds, ...dynamicallyImportedIds];
+      resultImports.forEach((dep) => {
+        this.getDependencesFiles(that, dep, result, visitedModuleIds);
+      });
+    });
 
     return Array.from(result);
   }
   findCopyFiles() {
-    const basePath = this.root;
-    const files = execSync(
-      `find ${basePath} -name "*copy" -type f -not -path "*/dist/*" -not -path "*/node_modules/*"`
-    )
-      .toString()
-      .split("\n")
-      .filter((f) => f);
+    const files: string[] = [];
+    const ignoreDirs = new Set(["dist", "node_modules", ".git"]);
+    const collectCopyFiles = (dirPath: string) => {
+      fs.readdirSync(dirPath).forEach((file) => {
+        const filePath = path.join(dirPath, file);
+        const stat = fs.statSync(filePath);
+        if (stat.isDirectory()) {
+          if (!ignoreDirs.has(file)) {
+            collectCopyFiles(filePath);
+          }
+          return;
+        }
+        if (filePath.endsWith(".copy")) {
+          files.push(filePath);
+        }
+      });
+    };
+    collectCopyFiles(this.root);
     console.log(files);
 
     return files.map((i) => ({
-      base: i.replace(".copy", ""),
+      base: i.slice(0, -".copy".length),
       target: i,
     }));
 
     // return files.filter((f) => f.endsWith('.copy'));
   }
   genrePatchFile({ base, target }: { base: string; target: string }) {
-    const str = `diff -u ${base} ${target} > ${target}.patch || [ $? -eq 1 ]`;
     try {
-      execSync(str);
+      fs.copyFileSync(target, base);
     } catch (error) {
-      console.log(`文件${base} 生成 patch 文件失败 ${target}.patch`);
+      console.log(`文件${target} 应用到 ${base} 失败`);
       return null;
     }
-    console.log(`文件${base} 已生成 patch 文件 ${target}.patch`);
-    return `${target}.patch`;
+    console.log(`文件${target} 已应用到 ${base}`);
+    return target;
   }
 }
 
@@ -275,14 +329,15 @@ export const findDepFiles = async (options: {
 export const excuteCopy = async (options: { targetPath: string }) => {
   const { targetPath } = options;
   const savedFiles = findDepFilesInstance.getSavedFiles();
-  const files = [...new Set(Object.values(savedFiles).flat())];
+  const files = Array.from(new Set(Object.values(savedFiles).flat()));
   if (!files?.length) {
     throw Error("请先执行find命令");
   }
   files.forEach((file) => {
+    const sourceFile = toAbsolutePath(file, process.cwd());
     const targetFile = path.resolve(
       targetPath,
-      file.replace(process.cwd() + "/", "")
+      path.relative(process.cwd(), sourceFile)
     );
     const targetDir = path.dirname(targetFile);
     // 递归创建目录
@@ -293,15 +348,15 @@ export const excuteCopy = async (options: { targetPath: string }) => {
       // 判断targetFile 和file 是否文件内容一致 可能有图片
       if (
         fs.readFileSync(targetFile).toString() !==
-        fs.readFileSync(file).toString()
+        fs.readFileSync(sourceFile).toString()
       ) {
-        fs.copyFileSync(file, targetFile + ".copy");
+        fs.copyFileSync(sourceFile, targetFile + ".copy");
       } else {
         console.log(`文件${file} 已存在 内容一致 无需复制`);
       }
       return;
     }
-    fs.copyFileSync(file, targetFile);
+    fs.copyFileSync(sourceFile, targetFile);
   });
   console.log(`文件已复制到-->\n${targetPath}`);
   process.exit(0);
@@ -310,12 +365,9 @@ export const excuteCopy = async (options: { targetPath: string }) => {
 export const applyCopy = () => {
   const files = findDepFilesInstance.findCopyFiles();
   files.forEach((row) => {
-    const patchPath = findDepFilesInstance.genrePatchFile(row);
-    if (patchPath) {
-      execSync(`patch ${row.base} ${patchPath}`);
-      console.log(`文件${row.base} 已应用 patch 文件 ${patchPath}`);
-      fs.unlinkSync(patchPath);
-      fs.unlinkSync(row.target);
+    const appliedFile = findDepFilesInstance.genrePatchFile(row);
+    if (appliedFile) {
+      fs.unlinkSync(appliedFile);
     }
   });
 };

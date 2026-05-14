@@ -5,7 +5,11 @@ import { parse, generate, traverse } from "@dd-code/babel-tools";
  * @returns
  */
 export function checkSandBoxDistFile(url: string) {
-  if (["dd-code_dd-sandbox_shared"].some((item) => url.indexOf(item) !== -1)) {
+  if (
+    ["dd-code_dd-sandbox_shared", "dd-code_dd-sandbox-runtime"].some(
+      (item) => url.indexOf(item) !== -1
+    )
+  ) {
     return true;
   }
 }
@@ -55,6 +59,12 @@ export function checkTransformScope(url: string) {
   const ext = uri.split(".").pop();
 
   if (url.indexOf("dd-code_dd-sandbox") !== -1) {
+    return false;
+  }
+  if (url.indexOf("@dd-code/dd-sandbox-runtime") !== -1) {
+    return false;
+  }
+  if (url.indexOf("/dd-sandbox-runtime/") !== -1) {
     return false;
   }
   if (url.indexOf("virtual:@dd-code/dd-sandbox") !== -1) {

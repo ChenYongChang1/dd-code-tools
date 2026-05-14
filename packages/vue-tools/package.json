@@ -1,6 +1,6 @@
 {
   "name": "@dd-code/vue-tools",
-  "version": "0.0.2",
+  "version": "0.0.5",
   "description": "vue-specific tools and utilities",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

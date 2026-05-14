@@ -11,20 +11,20 @@ program
 program
   .command("delete")
   .description("删除项目中未使用的文件")
-  .option("--config <config>", "当前vite config文件路径", "")
+  .option("--config <config>", "当前vite config文件路径", "./vite.config.ts")
   .action(async ({ config }) => {
     const { excuteDelete } = await import("./find/index");
     excuteDelete({ config });
   });
 
 program
-  .command("find")
+  .command("find [fileName]")
   .description("寻找项目中某个文件所依赖的其他文件")
   .option("--fileName <fileName>", "当前文件名称", "")
-  .option("--config <config>", "当前vite config文件路径", "")
-  .action(async (options) => {
+  .option("--config <config>", "当前vite config文件路径", "./vite.config.ts")
+  .action(async (fileName, options) => {
     const { excuteFindDep } = await import("./find/index");
-    excuteFindDep(options);
+    excuteFindDep({ ...options, fileName: fileName || options.fileName });
   });
 
 program
