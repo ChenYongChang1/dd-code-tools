@@ -1,0 +1,14 @@
+packages/dd-sandbox-runtime/src/js/proxy-sandbox.ts
+  h_f73775244b1013 11,45-47,52-63,119,156,165,168-179,216,353-354
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "da43caa299074671eabb356cea942f0949dd746c",
+  "prompts": {},
+  "humans": {
+    "h_f73775244b1013": {
+      "author": "陈永昌"
+    }
+  }
+}
