@@ -8,7 +8,7 @@ import {
   windowProperties,
   isNativeGlobalProp,
   array2TruthyObject,
-  without
+  without,
 } from "./utils";
 
 import { checkGlobalVarWhiteList, rebindTarget2Fn } from "./sandbox-helper";
@@ -42,12 +42,24 @@ export const cachedGlobals = Array.from(
       globalsInES2015
         .concat(overwrittenGlobals)
         .concat("requestAnimationFrame"),
-      ...accessingSpiedGlobals
-    )
-  )
+      ...accessingSpiedGlobals,
+    ),
+  ),
 );
 // 常见全局名转为 truthy map 便于快速 in 检查
 const cachedGlobalObjects = array2TruthyObject(cachedGlobals);
+
+function addSandboxClass(node: Node, appCode: string) {
+  setTimeout(() => {
+    if (node instanceof Element) {
+      node.classList.add(appCode);
+    } else if (node instanceof DocumentFragment) {
+      Array.from(node.children).forEach((child) => {
+        child.classList.add(appCode);
+      });
+    }
+  }, 0);
+}
 
 function createFakeWindow(globalContext: ProxySandboxOptions["globalContext"]) {
   const propertiesWithGetter = new Map();
@@ -104,7 +116,7 @@ export class ProxySandbox {
     const { fakeWindow, propertiesWithGetter } =
       createFakeWindow(globalContext);
     const checkWhiteList = checkGlobalVarWhiteList(
-      options.globalVarWhiteList || []
+      options.globalVarWhiteList || [],
     );
 
     const proxyCache = new Map();
@@ -141,7 +153,7 @@ export class ProxySandbox {
                   bodyTarget[bodyProp] as (...args: any) => any;
                 if (
                   ["replaceChild", "appendChild", "insertBefore"].includes(
-                    bodyProp
+                    bodyProp,
                   )
                 ) {
                   return function (...args: any) {
@@ -150,12 +162,21 @@ export class ProxySandbox {
                         args,
                         funcV(),
                         bodyTarget,
-                        self
+                        self,
                       );
-                    } else if (args[0] && args[0].classList) {
-                      args[0].classList.add(self.appCode);
                     }
-                    return funcV().apply(bodyTarget, args);
+                    const insertedNode = args[0];
+                    if (insertedNode instanceof DocumentFragment) {
+                      addSandboxClass(insertedNode, self.appCode);
+                    }
+                    const result = funcV().apply(bodyTarget, args);
+                    if (
+                      insertedNode &&
+                      !(insertedNode instanceof DocumentFragment)
+                    ) {
+                      addSandboxClass(insertedNode, self.appCode);
+                    }
+                    return result;
                   };
                 }
                 return rebindTarget2Fn(bodyTarget, funcV());
@@ -192,7 +213,7 @@ export class ProxySandbox {
           if (!target.hasOwnProperty(p) && globalContext.hasOwnProperty(p)) {
             const descriptor = Object.getOwnPropertyDescriptor(
               globalContext,
-              p
+              p,
             );
             const { writable, configurable, enumerable, set } = descriptor!;
             if (writable || set) {
@@ -246,8 +267,8 @@ export class ProxySandbox {
         const actualTarget = propertiesWithGetter.has(p)
           ? globalContext
           : p in target
-          ? target
-          : globalContext;
+            ? target
+            : globalContext;
         const value = (actualTarget as any)[p];
 
         // 如果是冻结属性，直接返回值
@@ -329,8 +350,8 @@ export class ProxySandbox {
         // 将宿主与 fakeWindow 的 key 合并，保证 for...in/Object.keys 等行为一致
         return Array.from(
           new Set(
-            Reflect.ownKeys(globalContext).concat(Reflect.ownKeys(target))
-          )
+            Reflect.ownKeys(globalContext).concat(Reflect.ownKeys(target)),
+          ),
         );
       },
 

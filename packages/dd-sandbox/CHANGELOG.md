@@ -1,5 +1,12 @@
 # @dd-code/dd-sandbox
 
+## 1.0.14
+
+### Patch Changes
+
+- Updated dependencies
+  - @dd-code/dd-sandbox-runtime@1.1.2
+
 ## 1.0.13
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @dd-code/dd-sandbox-runtime
 
+## 1.1.2
+
+### Patch Changes
+
+- node 异步了
+
 ## 1.1.1
 
 ### Patch Changes
